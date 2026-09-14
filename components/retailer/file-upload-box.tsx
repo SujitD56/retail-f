@@ -38,6 +38,7 @@ export function FileUploadBox({
   hint,
   purpose,
   multiple = false,
+  initialFiles,
   onUploaded,
   className,
 }: {
@@ -45,11 +46,13 @@ export function FileUploadBox({
   hint: string;
   purpose: UploadPurpose;
   multiple?: boolean;
+  /** Pre-seeds the "already uploaded" list — e.g. a product's existing images when editing. Only read on first mount; changing it later has no effect (matches how every other form field here takes its initial value). */
+  initialFiles?: UploadedFile[];
   onUploaded?: (files: UploadedFile[]) => void;
   className?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [files, setFiles] = useState<UploadedFile[]>(initialFiles ?? []);
   const [status, setStatus] = useState<"idle" | "uploading" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

@@ -49,9 +49,11 @@ const columns: ColumnDef<RetailerCatalogRow>[] = [
     id: "actions",
     header: "Actions",
     enableSorting: false,
-    cell: () => (
+    cell: ({ row }) => (
       <div className="flex items-center gap-3 text-ink-500">
-        <button type="button" aria-label="Edit"><Edit2 className="size-4 hover:text-primary-600" /></button>
+        <Link href={`/retailer/products/${row.original.id}/edit`} aria-label="Edit">
+          <Edit2 className="size-4 hover:text-primary-600" />
+        </Link>
         <button type="button" aria-label="More"><MoreVertical className="size-4 hover:text-primary-600" /></button>
       </div>
     ),
