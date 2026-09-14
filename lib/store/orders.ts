@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { Address, Order } from "@/types";
+import type { Address, Order, PaymentSession } from "@/types";
 import { api, ApiError } from "@/lib/api/client";
 
 interface PlaceOrderInput {
@@ -13,9 +13,15 @@ interface PlaceOrderInput {
   guestEmail?: string;
 }
 
+/** `payment` is non-null whenever there's still something to collect online — present right after checkout, and again on re-fetch if the customer never finished paying. Null for COD, and null once paid. */
+interface OrderWithPayment {
+  order: Order;
+  payment: PaymentSession | null;
+}
+
 interface OrdersState {
-  placeOrder: (input: PlaceOrderInput) => Promise<Order>;
-  getOrder: (orderNumber: string) => Promise<Order | null>;
+  placeOrder: (input: PlaceOrderInput) => Promise<OrderWithPayment>;
+  getOrder: (orderNumber: string) => Promise<OrderWithPayment | null>;
   getAllOrders: () => Promise<Order[]>;
 }
 
@@ -28,15 +34,11 @@ interface OrdersState {
  * total.
  */
 export const useOrdersStore = create<OrdersState>()(() => ({
-  placeOrder: async (input) => {
-    const { order } = await api.post<{ order: Order }>("/orders/checkout", input);
-    return order;
-  },
+  placeOrder: (input) => api.post<OrderWithPayment>("/orders/checkout", input),
 
   getOrder: async (orderNumber) => {
     try {
-      const { order } = await api.get<{ order: Order }>(`/orders/${orderNumber}`);
-      return order;
+      return await api.get<OrderWithPayment>(`/orders/${orderNumber}`);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) return null;
       throw err;

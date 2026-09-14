@@ -114,6 +114,8 @@ export interface Order {
   userId: string;
   items: OrderItem[];
   status: OrderStatus;
+  paymentMethod: "upi" | "card" | "netbanking" | "cod";
+  paymentStatus: "pending" | "paid" | "failed";
   placedAt: string;
   estimatedDelivery: string;
   subtotal: number;
@@ -122,6 +124,15 @@ export interface Order {
   total: number;
   shippingAddress: Address;
   tracking: OrderTrackingStep[];
+}
+
+/** What the API hands back alongside an order whenever there's still money to collect online — null for COD, and null again once paid. Everything here is safe to send to the browser (keyId is the public half of the Razorpay credential pair). */
+export interface PaymentSession {
+  provider: "razorpay";
+  keyId: string;
+  orderId: string;
+  amount: number;
+  currency: string;
 }
 
 export type UserRole = "customer" | "retailer" | "admin";

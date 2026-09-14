@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Check, Download, HelpCircle, Package, ShieldCheck } from "lucide-react";
 import { useOrdersStore } from "@/lib/store/orders";
 import { getProductsByIds } from "@/lib/data/products-client";
+import { payForOrder } from "@/lib/payments/razorpay";
 import { api } from "@/lib/api/client";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { StatusPill } from "@/components/ui/status-pill";
@@ -13,28 +14,46 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
+import { useAuthStore } from "@/lib/store/auth";
 import { formatDateTime, formatINR, cn } from "@/lib/utils";
-import type { Order, Product, Retailer } from "@/types";
+import type { Order, PaymentSession, Product, Retailer } from "@/types";
+
+const PAYMENT_METHOD_LABEL: Record<Order["paymentMethod"], string> = {
+  upi: "UPI",
+  card: "Card",
+  netbanking: "Net Banking",
+  cod: "Cash on Delivery",
+};
+
+const PAYMENT_STATUS_LABEL: Record<Order["paymentStatus"], string> = {
+  paid: "Paid",
+  pending: "Payment Pending",
+  failed: "Payment Failed",
+};
 
 export default function OrderTrackingPage() {
   const params = useParams<{ id: string }>();
   const getOrder = useOrdersStore((s) => s.getOrder);
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
 
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<Order | null>(null);
+  const [paymentSession, setPaymentSession] = useState<PaymentSession | null>(null);
+  const [payingNow, setPayingNow] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [retailers, setRetailers] = useState<Retailer[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const o = await getOrder(params.id).catch(() => null);
+      const result = await getOrder(params.id).catch(() => null);
       if (cancelled) return;
-      setOrder(o);
-      if (o) {
+      setOrder(result?.order ?? null);
+      setPaymentSession(result?.payment ?? null);
+      if (result?.order) {
         const [productList, { items: retailerList }] = await Promise.all([
-          getProductsByIds(o.items.map((i) => i.productId)),
+          getProductsByIds(result.order.items.map((i) => i.productId)),
           api.get<{ items: Retailer[] }>("/retailers"),
         ]);
         if (!cancelled) {
@@ -49,6 +68,29 @@ export default function OrderTrackingPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  const handlePayNow = async () => {
+    if (!order || !paymentSession) return;
+    setPayingNow(true);
+    try {
+      const paid = await payForOrder({
+        orderNumber: order.id,
+        session: paymentSession,
+        name: "Ilkal Threads",
+        description: `Order ${order.id}`,
+        prefill: { name: order.shippingAddress.fullName, email: user?.email, contact: order.shippingAddress.phone },
+      });
+      if (paid) {
+        setOrder(paid);
+        setPaymentSession(null);
+        toast({ title: "Payment received", variant: "success" });
+      } else {
+        toast({ title: "Payment not completed", description: "You can try again whenever you're ready.", variant: "error" });
+      }
+    } finally {
+      setPayingNow(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -98,6 +140,18 @@ export default function OrderTrackingPage() {
               Placed on {formatDateTime(order.placedAt)} | Estimated Complete Delivery by {new Date(order.estimatedDelivery).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
             </p>
           </div>
+
+          {order.paymentStatus !== "paid" && order.paymentMethod !== "cod" && (
+            <div className="flex flex-col gap-3 rounded-lg border border-warning-500/30 bg-warning-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-display text-lg text-ink-900">Payment not completed</p>
+                <p className="mt-1 text-sm text-ink-700">This order is saved, but the payment for it didn&apos;t go through yet.</p>
+              </div>
+              <Button onClick={handlePayNow} disabled={payingNow || !paymentSession} className="shrink-0 uppercase">
+                {payingNow ? "Opening payment…" : `Pay Now (${formatINR(order.total)})`}
+              </Button>
+            </div>
+          )}
 
           {Array.from(byRetailer.entries()).map(([retailerId, items], i) => {
             const retailer = retailers.find((r) => r.id === retailerId);
@@ -179,8 +233,12 @@ export default function OrderTrackingPage() {
             <div className="h-px w-full bg-cream-300" />
             <div>
               <p className="text-xs font-semibold uppercase text-ink-500">Payment Information</p>
-              <p className="mt-1 text-sm text-ink-900">Paid via Online Payment</p>
-              <p className="mt-1 text-sm font-semibold text-ink-900">Total Paid: {formatINR(order.total)}</p>
+              <p className="mt-1 text-sm text-ink-900">
+                {PAYMENT_METHOD_LABEL[order.paymentMethod]} — {PAYMENT_STATUS_LABEL[order.paymentStatus]}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-ink-900">
+                {order.paymentStatus === "paid" ? "Total Paid" : "Total Due"}: {formatINR(order.total)}
+              </p>
             </div>
             <Button variant="secondary" onClick={() => toast({ title: "Invoice download started" })}>
               <Download className="size-4" /> Download Invoice (PDF)

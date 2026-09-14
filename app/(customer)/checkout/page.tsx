@@ -10,6 +10,7 @@ import { useCartStore } from "@/lib/store/cart";
 import { useOrdersStore } from "@/lib/store/orders";
 import { useAuthStore } from "@/lib/store/auth";
 import { getProductsByIds } from "@/lib/data/products-client";
+import { payForOrder } from "@/lib/payments/razorpay";
 import { api } from "@/lib/api/client";
 import { Stepper } from "@/components/ui/stepper";
 import { Button } from "@/components/ui/button";
@@ -108,14 +109,36 @@ export default function CheckoutPage() {
     }
     setPlacing(true);
     try {
-      const order = await placeOrder({
+      const { order, payment: paymentSession } = await placeOrder({
         items: resolvedItems.map(({ item, product }) => ({ productId: product.id, quantity: item.quantity })),
         shippingAddress: address,
         deliveryMethod: delivery,
         paymentMethod: payment,
         guestEmail: user ? undefined : guestEmail,
       });
+      // The order exists in the DB either way from this point on — clear
+      // the cart regardless of what happens with the payment widget below,
+      // same as COD already does. A customer who backs out of paying
+      // retries from the order page, not by re-running checkout.
       clearCart();
+
+      if (paymentSession) {
+        const paid = await payForOrder({
+          orderNumber: order.id,
+          session: paymentSession,
+          name: "Ilkal Threads",
+          description: `Order ${order.id}`,
+          prefill: { name: address.fullName, email: user?.email ?? guestEmail, contact: address.phone },
+        });
+        if (!paid) {
+          toast({
+            title: "Payment not completed",
+            description: "Your order is saved — you can finish paying from the order page.",
+            variant: "error",
+          });
+        }
+      }
+
       router.push(`/orders/${order.id}`);
     } catch {
       toast({ title: "Couldn't place your order — please try again", variant: "error" });
