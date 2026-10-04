@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export function Hero() {
   return (
-    <section className="relative flex h-[680px] items-center px-5 sm:px-10 lg:px-20">
+    <section className="relative flex h-[340px] items-center px-5 sm:px-10 lg:px-20">
       <Image
         src="/images/customer/hero-banner.png"
         alt="Weaver draping an Ilkal saree"
@@ -15,11 +15,11 @@ export function Hero() {
         className="object-cover"
       />
       <div className="absolute inset-0 bg-black/45" />
-      <div className="relative z-10 flex max-w-[720px] flex-col gap-8">
-        <div className="flex flex-col gap-4">
+      <div className="relative z-10 flex max-w-[720px] flex-col gap-5">
+        <div className="flex flex-col gap-2.5">
           <p className="text-[13px] font-semibold uppercase text-gold-400">The Loom of Heritage</p>
-          <h1 className="font-display text-5xl leading-[1.1] text-white sm:text-6xl">Discover the Soul of Ilkal</h1>
-          <p className="max-w-xl text-lg leading-relaxed text-[#f0ece6]">
+          <h1 className="font-display text-3xl leading-[1.1] text-white sm:text-4xl">Discover the Soul of Ilkal</h1>
+          <p className="max-w-xl text-sm leading-relaxed text-[#f0ece6] sm:text-base">
             Explore authentic Ilkal sarees from trusted retailers — collections crafted with generations of
             tradition, directly empowered from Karnataka&apos;s weaver heartlands.
           </p>

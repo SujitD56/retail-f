@@ -17,8 +17,8 @@ export function ProductCard({ product, retailerName }: { product: Product; retai
   const toggle = useWishlistStore((s) => s.toggle);
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-lg border border-cream-300 bg-white pb-5">
-      <Link href={`/product/${product.slug}`} className="relative block aspect-[4/5] w-full overflow-hidden bg-cream-100">
+    <div className="group flex h-full flex-col overflow-hidden rounded-lg border border-cream-300 bg-white pb-5">
+      <Link href={`/product/${product.slug}`} className="relative block aspect-[4/5] w-full shrink-0 overflow-hidden bg-cream-100">
         <Image
           src={product.images[0]!.url}
           alt={product.images[0]!.alt}
@@ -43,21 +43,23 @@ export function ProductCard({ product, retailerName }: { product: Product; retai
           <Heart className={cn("size-[18px]", inWishlist ? "fill-primary-600 text-primary-600" : "text-ink-900")} />
         </button>
       </Link>
-      <div className="flex flex-col gap-3 px-4 pt-3">
+      <div className="flex flex-1 flex-col gap-3 px-4 pt-3">
         <div className="flex flex-col gap-1">
           <Link href={`/product/${product.slug}`} className="truncate font-display text-lg text-ink-900 hover:text-primary-600">
             {product.name}
           </Link>
-          {retailerName && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-[13px] text-ink-700">By {retailerName}</span>
-              <Badge variant="success" className="bg-[#e2ece9] text-[#1e5c49]">
-                Verified
-              </Badge>
-            </div>
-          )}
+          <div className="flex min-h-[21px] items-center gap-1.5">
+            {retailerName && (
+              <>
+                <span className="text-[13px] text-ink-700">By {retailerName}</span>
+                <Badge variant="success" className="bg-[#e2ece9] text-[#1e5c49]">
+                  Verified
+                </Badge>
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="mt-auto flex items-center justify-between">
           <StarRating value={product.rating} size="xs" />
           <PriceTag price={product.price} compareAt={product.compareAtPrice} size="sm" />
         </div>

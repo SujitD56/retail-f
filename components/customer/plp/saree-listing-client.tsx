@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { LayoutGrid, List, SlidersHorizontal, X } from "lucide-react";
 import type { Product, Retailer, WeaveType } from "@/types";
 import { FiltersSidebar, COLOR_SWATCHES } from "./filters-sidebar";
+import { applyPlpFilters } from "./filter-products";
 import { DEFAULT_PLP_FILTERS, SORT_LABELS, type PlpFilters, type SortOption } from "./types";
 import { ProductCard } from "@/components/customer/product-card";
 import { ProductListRow } from "@/components/customer/product-list-row";
@@ -47,24 +48,7 @@ export function SareeListingClient({
   }, [products]);
 
   const filtered = useMemo(() => {
-    let list = products.filter((p) => {
-      if (filters.categories.length && !filters.categories.includes(p.weaveType)) return false;
-      if (p.price > filters.priceMax) return false;
-      if (filters.retailerIds.length && !filters.retailerIds.includes(p.retailerId)) return false;
-      if (filters.minRating && p.rating < filters.minRating) return false;
-      if (filters.inStockOnly && !p.inStock) return false;
-      if (filters.outOfStockOnly && p.inStock) return false;
-      if (filters.materials.length && !filters.materials.some((m) => p.material.toLowerCase().includes(m.split(" ")[0]!.toLowerCase()))) return false;
-      if (filters.colors.length) {
-        const productColor = p.color.toLowerCase();
-        const matchesColor = filters.colors.some((hex) => {
-          const swatch = COLOR_SWATCHES.find((c) => c.hex === hex);
-          return swatch?.keywords.some((k) => productColor.includes(k));
-        });
-        if (!matchesColor) return false;
-      }
-      return true;
-    });
+    let list = applyPlpFilters(products, filters);
 
     list = [...list].sort((a, b) => {
       switch (sort) {
