@@ -2,13 +2,24 @@
 
 import { useMemo, useState } from "react";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Eye, MoreVertical, Search, Star } from "lucide-react";
+import { Eye, Search, Star } from "lucide-react";
 import { AdminShell } from "@/components/admin/shell";
 import { DataTable } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/ui/status-pill";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { useApiQuery } from "@/lib/hooks/use-api-query";
+import { api } from "@/lib/api/client";
 import { cn, formatDate } from "@/lib/utils";
+
+type ModerateAction = "approve" | "reject" | "suspend" | "reinstate";
+const STATUS_AFTER_ACTION: Record<ModerateAction, AdminRetailerRow["status"]> = {
+  approve: "Verified",
+  reject: "Rejected",
+  suspend: "Suspended",
+  reinstate: "Verified",
+};
 
 interface AdminRetailerRow {
   id: string;
@@ -35,59 +46,108 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-const columns: ColumnDef<AdminRetailerRow>[] = [
-  {
-    accessorKey: "name",
-    header: "Retailer Name & Weaver ID",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-600">
-          {initials(row.original.name)}
-        </span>
-        <div className="min-w-0">
-          <p className="truncate font-medium text-ink-900">{row.original.name}</p>
-          <p className="text-xs text-ink-500">{row.original.weaverId}</p>
+function buildColumns(moderate: (id: string, action: ModerateAction) => void): ColumnDef<AdminRetailerRow>[] {
+  return [
+    {
+      accessorKey: "name",
+      header: "Retailer Name & Weaver ID",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-600">
+            {initials(row.original.name)}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-medium text-ink-900">{row.original.name}</p>
+            <p className="text-xs text-ink-500">{row.original.weaverId}</p>
+          </div>
         </div>
-      </div>
-    ),
-  },
-  { accessorKey: "status", header: "Status", cell: ({ row }) => <StatusPill status={row.original.status} /> },
-  { accessorKey: "location", header: "Location" },
-  { accessorKey: "productsListed", header: "Products Listed", cell: ({ row }) => `${row.original.productsListed} items` },
-  { accessorKey: "ordersServiced", header: "Orders Serviced" },
-  {
-    accessorKey: "rating",
-    header: "Avg Rating",
-    cell: ({ row }) =>
-      row.original.rating > 0 ? (
-        <span className="flex items-center gap-1 font-medium text-ink-900">
-          <Star className="size-3.5 fill-gold-400 text-gold-400" /> {row.original.rating.toFixed(1)}
-        </span>
-      ) : (
-        <span className="text-ink-500">—</span>
       ),
-  },
-  { accessorKey: "joinedDate", header: "Joined Date", cell: ({ row }) => formatDate(row.original.joinedDate) },
-  {
-    id: "actions",
-    header: "Actions",
-    enableSorting: false,
-    cell: () => (
-      <div className="flex items-center gap-3 text-ink-500">
-        <button type="button" aria-label="View"><Eye className="size-4 hover:text-primary-600" /></button>
-        <button type="button" aria-label="More"><MoreVertical className="size-4 hover:text-primary-600" /></button>
-      </div>
-    ),
-  },
-];
+    },
+    { accessorKey: "status", header: "Status", cell: ({ row }) => <StatusPill status={row.original.status} /> },
+    { accessorKey: "location", header: "Location" },
+    { accessorKey: "productsListed", header: "Products Listed", cell: ({ row }) => `${row.original.productsListed} items` },
+    { accessorKey: "ordersServiced", header: "Orders Serviced" },
+    {
+      accessorKey: "rating",
+      header: "Avg Rating",
+      cell: ({ row }) =>
+        row.original.rating > 0 ? (
+          <span className="flex items-center gap-1 font-medium text-ink-900">
+            <Star className="size-3.5 fill-gold-400 text-gold-400" /> {row.original.rating.toFixed(1)}
+          </span>
+        ) : (
+          <span className="text-ink-500">—</span>
+        ),
+    },
+    { accessorKey: "joinedDate", header: "Joined Date", cell: ({ row }) => formatDate(row.original.joinedDate) },
+    {
+      id: "actions",
+      header: "Actions",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const { id, status } = row.original;
+        return (
+          <div className="flex items-center gap-2">
+            <button type="button" aria-label="View" className="text-ink-500 hover:text-primary-600">
+              <Eye className="size-4" />
+            </button>
+            {status === "Pending" && (
+              <>
+                <Button size="sm" onClick={() => moderate(id, "approve")}>
+                  Approve
+                </Button>
+                <Button size="sm" variant="danger" onClick={() => moderate(id, "reject")}>
+                  Reject
+                </Button>
+              </>
+            )}
+            {status === "Verified" && (
+              <Button size="sm" variant="danger" onClick={() => moderate(id, "suspend")}>
+                Deactivate
+              </Button>
+            )}
+            {status === "Suspended" && (
+              <Button size="sm" onClick={() => moderate(id, "reinstate")}>
+                Activate
+              </Button>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+}
 
 export default function AdminRetailersPage() {
   const { data, loading } = useApiQuery<AdminRetailersResponse>("/retailers/admin");
-  const rows = useMemo(() => data?.items ?? [], [data]);
+  const { toast } = useToast();
+  const [overrides, setOverrides] = useState<Record<string, AdminRetailerRow["status"]>>({});
+  const rows = useMemo(
+    () => (data?.items ?? []).map((r) => (overrides[r.id] ? { ...r, status: overrides[r.id]! } : r)),
+    [data, overrides],
+  );
   const summary = data?.summary ?? { all: 0, verified: 0, pending: 0, suspended: 0 };
 
   const [tab, setTab] = useState<"all" | "verified" | "pending" | "suspended">("all");
   const [query, setQuery] = useState("");
+
+  async function moderate(id: string, action: ModerateAction) {
+    try {
+      await api.patch(`/retailers/admin/${id}/moderate`, { action });
+      setOverrides((prev) => ({ ...prev, [id]: STATUS_AFTER_ACTION[action] }));
+      const messages: Record<ModerateAction, string> = {
+        approve: "Retailer approved",
+        reject: "Retailer rejected",
+        suspend: "Retailer deactivated",
+        reinstate: "Retailer activated",
+      };
+      toast({ title: messages[action], variant: action === "approve" || action === "reinstate" ? "success" : undefined });
+    } catch {
+      toast({ title: "Couldn't update this retailer — try again", variant: "error" });
+    }
+  }
+
+  const columns = useMemo(() => buildColumns(moderate), []);
 
   const tabs = [
     { key: "all" as const, label: "All", count: summary.all },
