@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -31,6 +31,21 @@ const TAX_RATE = 0.18;
 const emptyAddress: AddressValues = { fullName: "", line1: "", city: "", state: "", postalCode: "", phone: "" };
 
 export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-6 px-5 py-16 sm:px-10 lg:px-20">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      }
+    >
+      <CheckoutPageContent />
+    </Suspense>
+  );
+}
+
+function CheckoutPageContent() {
   const mounted = useMounted();
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState<AddressValues | null>(null);
@@ -56,7 +71,7 @@ export default function CheckoutPage() {
   // Buy Now checks out only the single product selected on the PDP,
   // bypassing whatever else is already sitting in the cart.
   const isBuyNow = searchParams.get("buyNow") === "1" && Boolean(buyNowItem);
-  const items = isBuyNow && buyNowItem ? [buyNowItem] : cartItems;
+  const items = useMemo(() => (isBuyNow && buyNowItem ? [buyNowItem] : cartItems), [isBuyNow, buyNowItem, cartItems]);
 
   const [products, setProducts] = useState<Product[] | null>(null);
   const [retailers, setRetailers] = useState<Retailer[]>([]);
