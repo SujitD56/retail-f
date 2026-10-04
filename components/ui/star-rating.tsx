@@ -19,12 +19,14 @@ export function StarRating({
     <div className={cn("flex items-center gap-1", className)}>
       <div className="flex items-center gap-0.5">
         {Array.from({ length: 5 }).map((_, i) => {
-          const filled = i + 1 <= Math.round(value);
+          const fillPct = Math.max(0, Math.min(1, value - i)) * 100;
           return (
-            <Star
-              key={i}
-              className={cn(dims, filled ? "fill-gold-400 text-gold-400" : "fill-cream-300 text-cream-300")}
-            />
+            <span key={i} className={cn("relative inline-block", dims)}>
+              <Star className={cn(dims, "absolute inset-0 fill-cream-300 text-cream-300")} />
+              <span className="absolute inset-0 overflow-hidden" style={{ width: `${fillPct}%` }}>
+                <Star className={cn(dims, "fill-gold-400 text-gold-400")} />
+              </span>
+            </span>
           );
         })}
       </div>

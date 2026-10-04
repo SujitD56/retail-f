@@ -10,7 +10,7 @@ const FOOTER_COLUMNS = [
       { label: "Silk Cotton", href: "/sarees?category=silk-cotton" },
       { label: "Wedding Sarees", href: "/sarees?category=wedding-sarees" },
       { label: "Festive Sarees", href: "/sarees?category=festive-sarees" },
-      { label: "New Arrivals", href: "/sarees?sort=newest" },
+      { label: "New Arrivals", href: "/new-arrivals" },
     ],
   },
   {
@@ -25,11 +25,11 @@ const FOOTER_COLUMNS = [
   {
     title: "About Us",
     links: [
-      { label: "Our Heritage", href: "#" },
-      { label: "Authenticity GI", href: "#" },
-      { label: "Weaver Welfare", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Press", href: "#" },
+      { label: "Our Heritage", href: "/about#heritage" },
+      { label: "Authenticity GI", href: "/about#authenticity-gi" },
+      { label: "Weaver Welfare", href: "/about#weaver-welfare" },
+      { label: "Careers", href: "/about" },
+      { label: "Press", href: "/about" },
     ],
   },
   {

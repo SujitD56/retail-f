@@ -29,24 +29,30 @@ export function StorySection({ retailer }: { retailer: Retailer }) {
   );
 }
 
-export function StoreCollections({ collections }: { collections: Collection[] }) {
+export function StoreCollections({ collections, retailerId }: { collections: Collection[]; retailerId: string }) {
   return (
     <section className="px-5 py-16 sm:px-10 lg:px-20">
       <div className="mb-8 flex items-center justify-between">
         <h2 className="font-display text-[32px] text-primary-600">Store Collections</h2>
-        <Link href="/sarees" className="text-sm font-semibold text-primary-600">
-          View All {collections.length} Collections →
-        </Link>
+        <span className="text-sm font-semibold text-ink-500">{collections.length} Collections</span>
       </div>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {collections.map((c) => (
-          <Link key={c.id} href={`/collections/${c.slug}`} className="group relative flex h-[280px] flex-col justify-end overflow-hidden rounded-md p-5">
-            <Image src={c.coverUrl} alt={c.title} fill sizes="25vw" className="object-cover transition-transform duration-300 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-black/40" />
-            <p className="relative z-10 font-display text-xl text-white">{c.title}</p>
-          </Link>
-        ))}
-      </div>
+      {collections.length === 0 ? (
+        <p className="text-sm text-ink-700">This store hasn&apos;t been featured in any collections yet.</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {collections.map((c) => (
+            <Link
+              key={c.id}
+              href={`/collections/${c.slug}?retailer=${retailerId}`}
+              className="group relative flex h-[280px] flex-col justify-end overflow-hidden rounded-md p-5"
+            >
+              <Image src={c.coverUrl} alt={c.title} fill sizes="25vw" className="object-cover transition-transform duration-300 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-black/40" />
+              <p className="relative z-10 font-display text-xl text-white">{c.title}</p>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

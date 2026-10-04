@@ -18,8 +18,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: collection.title, description: collection.description };
 }
 
-export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CollectionPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ retailer?: string }>;
+}) {
   const { slug } = await params;
+  const { retailer: retailerId } = await searchParams;
   const [collection, allCollections, allProducts, retailers] = await Promise.all([
     getCollectionBySlug(slug),
     getCollections(),
@@ -28,14 +35,28 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   ]);
   if (!collection) notFound();
 
-  const collectionProducts = allProducts.filter((p) => collection.productIds.includes(p.id));
+  const scopedRetailer = retailerId ? retailers.find((r) => r.id === retailerId) : undefined;
+  let collectionProducts = allProducts.filter((p) => collection.productIds.includes(p.id));
+  if (scopedRetailer) {
+    collectionProducts = collectionProducts.filter((p) => p.retailerId === scopedRetailer.id);
+  }
   const retailerCount = new Set(collectionProducts.map((p) => p.retailerId)).size;
   const otherCollections = allCollections.filter((c) => c.id !== collection.id).slice(0, 3);
 
   return (
     <div>
       <div className="px-5 pt-6 sm:px-10 lg:px-20">
-        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Collections", href: "/sarees" }, { label: collection.title }]} />
+        <Breadcrumbs
+          items={
+            scopedRetailer
+              ? [
+                  { label: "Home", href: "/" },
+                  { label: scopedRetailer.name, href: `/retailers/${scopedRetailer.slug}` },
+                  { label: collection.title },
+                ]
+              : [{ label: "Home", href: "/" }, { label: "Collections", href: "/sarees" }, { label: collection.title }]
+          }
+        />
       </div>
       <CollectionHero collection={collection} retailerCount={retailerCount || 1} />
       <SareeListingClient
@@ -44,11 +65,13 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         hideCategoryFilter
         header={
           <div className="flex items-baseline gap-3">
-            <p className="text-base text-ink-700">Showing {collectionProducts.length} exquisite sarees</p>
+            <p className="text-base text-ink-700">
+              Showing {collectionProducts.length} exquisite sarees{scopedRetailer ? ` from ${scopedRetailer.name}` : ""}
+            </p>
           </div>
         }
       />
-      <RelatedCollections collections={otherCollections} />
+      {!scopedRetailer && <RelatedCollections collections={otherCollections} />}
     </div>
   );
 }

@@ -14,8 +14,8 @@ const NAV_LINKS = [
   { label: "Sarees", href: "/sarees" },
   { label: "Collections", href: "/collections/handpicked-ilkal" },
   { label: "Retailers", href: "/retailers" },
-  { label: "New Arrivals", href: "/sarees?sort=newest" },
-  { label: "Trending", href: "/sarees?tag=trending" },
+  { label: "New Arrivals", href: "/new-arrivals" },
+  { label: "Trending", href: "/trending" },
 ];
 
 export function Navbar() {

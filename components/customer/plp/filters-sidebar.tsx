@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Search, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StarRating } from "@/components/ui/star-rating";
@@ -7,24 +8,15 @@ import type { Retailer, WeaveType } from "@/types";
 import { cn } from "@/lib/utils";
 import type { PlpFilters } from "./types";
 
-const CATEGORY_OPTIONS: WeaveType[] = [
-  "Traditional Ilkal",
-  "Contemporary Ilkal",
-  "Wedding Saree",
-  "Festive Saree",
-  "Cotton Ilkal",
-  "Silk Cotton",
-];
-
-const COLOR_SWATCHES = [
-  { hex: "#6b1d2a", label: "Maroon" },
-  { hex: "#1e5c49", label: "Green" },
-  { hex: "#1d326b", label: "Navy" },
-  { hex: "#c4a265", label: "Gold" },
-  { hex: "#0f0f10", label: "Black" },
-  { hex: "#ef9fa7", label: "Pink" },
-  { hex: "#faf3e6", label: "Cream" },
-  { hex: "#8f64f2", label: "Purple" },
+export const COLOR_SWATCHES = [
+  { hex: "#6b1d2a", label: "Maroon", keywords: ["maroon", "crimson"] },
+  { hex: "#1e5c49", label: "Green", keywords: ["green"] },
+  { hex: "#1d326b", label: "Navy", keywords: ["navy", "indigo"] },
+  { hex: "#c4a265", label: "Gold", keywords: ["gold", "mustard", "amber"] },
+  { hex: "#0f0f10", label: "Black", keywords: ["black"] },
+  { hex: "#ef9fa7", label: "Pink", keywords: ["pink"] },
+  { hex: "#faf3e6", label: "Cream", keywords: ["cream", "ivory", "sand", "natural"] },
+  { hex: "#8f64f2", label: "Purple", keywords: ["purple", "lavender"] },
 ];
 
 const MATERIAL_OPTIONS = ["Cotton warp & weft", "Silk Cotton blend", "100% Pure Mulberry Silk"];
@@ -51,6 +43,13 @@ export function FiltersSidebar({
   const toggle = <T,>(list: T[], value: T): T[] =>
     list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 
+  const [retailerSearch, setRetailerSearch] = useState("");
+  const visibleRetailers = retailers.filter((r) => r.name.toLowerCase().includes(retailerSearch.trim().toLowerCase()));
+
+  // Dynamic — reflects only the categories that actually have products uploaded right now,
+  // so a category only appears here once a retailer has listed a saree in it.
+  const categoryOptions = (Object.keys(categoryCounts) as WeaveType[]).sort((a, b) => a.localeCompare(b));
+
   const body = (
     <>
       <div className="flex items-center justify-between">
@@ -59,7 +58,7 @@ export function FiltersSidebar({
           <button
             type="button"
             onClick={() =>
-              onChange({ categories: [], priceMax: 10000, colors: [], materials: [], retailerIds: [], minRating: 0, inStockOnly: false })
+              onChange({ categories: [], priceMax: 10000, colors: [], materials: [], retailerIds: [], minRating: 0, inStockOnly: false, outOfStockOnly: false })
             }
             className="text-[13px] font-medium text-primary-600"
           >
@@ -76,7 +75,7 @@ export function FiltersSidebar({
       {!hideCategory && (
         <FilterGroup title="Category">
           <div className="flex flex-col gap-3">
-            {CATEGORY_OPTIONS.map((cat) => (
+            {categoryOptions.map((cat) => (
               <label key={cat} className="flex items-center justify-between text-sm text-ink-900">
                 <span className="flex items-center gap-2.5">
                   <Checkbox
@@ -144,11 +143,14 @@ export function FiltersSidebar({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-3 -translate-y-1/2 text-ink-500" />
             <input
+              value={retailerSearch}
+              onChange={(e) => setRetailerSearch(e.target.value)}
               placeholder="Search retailers..."
               className="h-8 w-full rounded-sm border border-cream-300 bg-cream-100 pl-8 pr-2 text-xs text-ink-900 placeholder:text-ink-500 focus:outline-none"
             />
           </div>
-          {retailers.map((r) => (
+          {visibleRetailers.length === 0 && <p className="text-xs text-ink-500">No retailers match &ldquo;{retailerSearch}&rdquo;.</p>}
+          {visibleRetailers.map((r) => (
             <label key={r.id} className="flex items-center gap-2.5 text-sm text-ink-900">
               <Checkbox checked={filters.retailerIds.includes(r.id)} onCheckedChange={() => onChange({ ...filters, retailerIds: toggle(filters.retailerIds, r.id) })} />
               {r.name}
@@ -172,8 +174,18 @@ export function FiltersSidebar({
       <FilterGroup title="Availability">
         <div className="flex flex-col gap-3">
           <label className="flex items-center gap-2.5 text-sm text-ink-900">
-            <Checkbox checked={filters.inStockOnly} onCheckedChange={() => onChange({ ...filters, inStockOnly: !filters.inStockOnly })} />
+            <Checkbox
+              checked={filters.inStockOnly}
+              onCheckedChange={() => onChange({ ...filters, inStockOnly: !filters.inStockOnly, outOfStockOnly: false })}
+            />
             In Stock Only
+          </label>
+          <label className="flex items-center gap-2.5 text-sm text-ink-900">
+            <Checkbox
+              checked={filters.outOfStockOnly}
+              onCheckedChange={() => onChange({ ...filters, outOfStockOnly: !filters.outOfStockOnly, inStockOnly: false })}
+            />
+            Out of Stock
           </label>
         </div>
       </FilterGroup>

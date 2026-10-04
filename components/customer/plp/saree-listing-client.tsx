@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { LayoutGrid, List, SlidersHorizontal } from "lucide-react";
+import { LayoutGrid, List, SlidersHorizontal, X } from "lucide-react";
 import type { Product, Retailer, WeaveType } from "@/types";
-import { FiltersSidebar } from "./filters-sidebar";
+import { FiltersSidebar, COLOR_SWATCHES } from "./filters-sidebar";
 import { DEFAULT_PLP_FILTERS, SORT_LABELS, type PlpFilters, type SortOption } from "./types";
 import { ProductCard } from "@/components/customer/product-card";
 import { ProductListRow } from "@/components/customer/product-list-row";
@@ -53,7 +53,16 @@ export function SareeListingClient({
       if (filters.retailerIds.length && !filters.retailerIds.includes(p.retailerId)) return false;
       if (filters.minRating && p.rating < filters.minRating) return false;
       if (filters.inStockOnly && !p.inStock) return false;
+      if (filters.outOfStockOnly && p.inStock) return false;
       if (filters.materials.length && !filters.materials.some((m) => p.material.toLowerCase().includes(m.split(" ")[0]!.toLowerCase()))) return false;
+      if (filters.colors.length) {
+        const productColor = p.color.toLowerCase();
+        const matchesColor = filters.colors.some((hex) => {
+          const swatch = COLOR_SWATCHES.find((c) => c.hex === hex);
+          return swatch?.keywords.some((k) => productColor.includes(k));
+        });
+        if (!matchesColor) return false;
+      }
       return true;
     });
 
@@ -83,6 +92,33 @@ export function SareeListingClient({
     setPage(1);
   };
 
+  const appliedChips: { key: string; label: string; onRemove: () => void }[] = [
+    ...filters.categories.map((cat) => ({
+      key: `cat-${cat}`,
+      label: cat,
+      onRemove: () => updateFilters({ ...filters, categories: filters.categories.filter((c) => c !== cat) }),
+    })),
+    ...filters.colors.map((hex) => ({
+      key: `color-${hex}`,
+      label: COLOR_SWATCHES.find((c) => c.hex === hex)?.label ?? hex,
+      onRemove: () => updateFilters({ ...filters, colors: filters.colors.filter((c) => c !== hex) }),
+    })),
+    ...filters.materials.map((mat) => ({
+      key: `mat-${mat}`,
+      label: mat,
+      onRemove: () => updateFilters({ ...filters, materials: filters.materials.filter((m) => m !== mat) }),
+    })),
+    ...filters.retailerIds.map((id) => ({
+      key: `retailer-${id}`,
+      label: retailerName(id) ?? "Retailer",
+      onRemove: () => updateFilters({ ...filters, retailerIds: filters.retailerIds.filter((r) => r !== id) }),
+    })),
+    ...(filters.minRating ? [{ key: "rating", label: `${filters.minRating}★ & above`, onRemove: () => updateFilters({ ...filters, minRating: 0 }) }] : []),
+    ...(filters.inStockOnly ? [{ key: "in-stock", label: "In Stock Only", onRemove: () => updateFilters({ ...filters, inStockOnly: false }) }] : []),
+    ...(filters.outOfStockOnly ? [{ key: "out-of-stock", label: "Out of Stock", onRemove: () => updateFilters({ ...filters, outOfStockOnly: false }) }] : []),
+    ...(filters.priceMax < 10000 ? [{ key: "price", label: `Up to ₹${filters.priceMax.toLocaleString("en-IN")}`, onRemove: () => updateFilters({ ...filters, priceMax: 10000 }) }] : []),
+  ];
+
   return (
     <div className="flex gap-10 px-5 pb-24 sm:px-10 lg:px-20">
       <FiltersSidebar
@@ -100,7 +136,9 @@ export function SareeListingClient({
           {header ?? (
             <div className="flex items-baseline gap-4">
               <h1 className="font-display text-3xl text-primary-600 sm:text-4xl">Ilkal Sarees</h1>
-              <p className="text-sm text-ink-700 sm:text-base">{filtered.length.toLocaleString("en-IN")} Masterpieces Found</p>
+              <p className="text-sm text-ink-700 sm:text-base">
+                {filtered.length.toLocaleString("en-IN")} {filtered.length === 1 ? "Saree" : "Sarees"} Found
+              </p>
             </div>
           )}
           <div className="flex flex-wrap items-center gap-3 sm:gap-4">
@@ -146,6 +184,26 @@ export function SareeListingClient({
             </div>
           </div>
         </div>
+
+        {appliedChips.length > 0 && (
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-[13px] font-medium text-ink-700">Applied Filters:</span>
+            {appliedChips.map((chip) => (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={chip.onRemove}
+                className="flex items-center gap-1.5 rounded-full border border-cream-300 bg-white px-3 py-1 text-[13px] text-ink-900"
+              >
+                {chip.label}
+                <X className="size-3" />
+              </button>
+            ))}
+            <button type="button" onClick={() => updateFilters(DEFAULT_PLP_FILTERS)} className="text-[13px] font-medium text-primary-600">
+              Clear All
+            </button>
+          </div>
+        )}
 
         {pageItems.length === 0 ? (
           <EmptyState {...EmptyStatePresets.noSareesFound} onAction={() => updateFilters(DEFAULT_PLP_FILTERS)} actionHref={undefined} />

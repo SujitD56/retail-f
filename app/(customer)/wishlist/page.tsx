@@ -7,12 +7,12 @@ import { api } from "@/lib/api/client";
 import { WishlistGrid } from "@/components/customer/wishlist-grid";
 import { RetailerCard } from "@/components/customer/retailer-card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Award, Layers } from "lucide-react";
+import { Award } from "lucide-react";
 import { useMounted } from "@/lib/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 import type { Product, Retailer } from "@/types";
 
-const TABS = ["Products", "Retailers", "Collections"] as const;
+const TABS = ["Products", "Retailers"] as const;
 
 export default function WishlistPage() {
   const mounted = useMounted();
@@ -34,7 +34,7 @@ export default function WishlistPage() {
     });
   }, [mounted, tab]);
 
-  const counts = { Products: wishlistCount, Retailers: savedRetailerIds.length, Collections: 0 };
+  const counts = { Products: wishlistCount, Retailers: savedRetailerIds.length };
   const savedRetailers = allRetailers.filter((r) => savedRetailerIds.includes(r.id));
 
   return (
@@ -61,18 +61,14 @@ export default function WishlistPage() {
       <div className="px-5 sm:px-10 lg:px-20">
         {!mounted ? null : tab === "Products" ? (
           <WishlistGrid />
-        ) : tab === "Retailers" ? (
-          savedRetailers.length === 0 ? (
-            <EmptyState icon={Award} title="No saved retailers yet" description="Follow retailer storefronts to see them here." actionLabel="Explore Retailers" actionHref="/retailers" className="mx-auto max-w-md" />
-          ) : (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {savedRetailers.map((r) => (
-                <RetailerCard key={r.id} retailer={r} previewProducts={allProducts.filter((p) => p.retailerId === r.id)} />
-              ))}
-            </div>
-          )
+        ) : savedRetailers.length === 0 ? (
+          <EmptyState icon={Award} title="No saved retailers yet" description="Follow retailer storefronts to see them here." actionLabel="Explore Retailers" actionHref="/retailers" className="mx-auto max-w-md" />
         ) : (
-          <EmptyState icon={Layers} title="No saved collections yet" description="Save curated collections while browsing to find them here." actionLabel="Explore Collections" actionHref="/sarees" className="mx-auto max-w-md" />
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {savedRetailers.map((r) => (
+              <RetailerCard key={r.id} retailer={r} previewProducts={allProducts.filter((p) => p.retailerId === r.id)} />
+            ))}
+          </div>
         )}
       </div>
     </div>

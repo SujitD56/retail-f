@@ -1,15 +1,35 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Heart } from "lucide-react";
 import type { Product, Retailer } from "@/types";
 import { StarRating } from "@/components/ui/star-rating";
 import { Button } from "@/components/ui/button";
+import { useSavedRetailersStore } from "@/lib/store/saved-retailers";
+import { useMounted } from "@/lib/hooks/use-mounted";
+import { cn } from "@/lib/utils";
 
 export function RetailerCard({ retailer, previewProducts }: { retailer: Retailer; previewProducts: Product[] }) {
+  const mounted = useMounted();
+  const saved = useSavedRetailersStore((s) => s.has(retailer.id)) && mounted;
+  const toggleSaved = useSavedRetailersStore((s) => s.toggle);
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-cream-300 bg-white">
       <div className="relative h-40 w-full">
         <Image src={retailer.coverUrl} alt="" fill sizes="33vw" className="object-cover" />
+        <button
+          type="button"
+          aria-label={saved ? "Unfollow retailer" : "Add retailer to wishlist"}
+          onClick={(e) => {
+            e.preventDefault();
+            toggleSaved(retailer.id);
+          }}
+          className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.1)]"
+        >
+          <Heart className={cn("size-[18px]", saved ? "fill-primary-600 text-primary-600" : "text-ink-900")} />
+        </button>
       </div>
       <div className="flex flex-col gap-5 p-6">
         <div className="flex items-center gap-4">

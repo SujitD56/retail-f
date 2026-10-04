@@ -8,10 +8,12 @@ import { StarRating } from "@/components/ui/star-rating";
 import { PriceTag } from "@/components/ui/price-tag";
 import { Badge } from "@/components/ui/badge";
 import { useWishlistStore } from "@/lib/store/wishlist";
+import { useMounted } from "@/lib/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 
 export function ProductCard({ product, retailerName }: { product: Product; retailerName?: string }) {
-  const inWishlist = useWishlistStore((s) => s.has(product.id));
+  const mounted = useMounted();
+  const inWishlist = useWishlistStore((s) => s.has(product.id)) && mounted;
   const toggle = useWishlistStore((s) => s.toggle);
 
   return (

@@ -8,7 +8,7 @@ import { ProductGallery } from "@/components/customer/pdp/product-gallery";
 import { PurchasePanel } from "@/components/customer/pdp/purchase-panel";
 import { RetailerMiniCard } from "@/components/customer/pdp/retailer-mini-card";
 import { ReviewsPanel } from "@/components/customer/pdp/reviews-panel";
-import { ProductCard } from "@/components/customer/product-card";
+import { ProductCarousel } from "@/components/customer/product-carousel";
 import { getProductBySlug, getRelatedProducts } from "@/lib/data/products";
 import { getRetailerById } from "@/lib/data/retailers";
 import { getRatingBreakdown, getReviews } from "@/lib/data/reviews";
@@ -128,11 +128,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       {related.length > 0 && (
         <section className="border-y border-cream-300 bg-white px-5 py-16 sm:px-10 lg:px-20">
           <h2 className="font-display text-3xl text-primary-600">You May Also Like</h2>
-          <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
-            {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ProductCarousel products={related} className="mt-8" />
         </section>
       )}
 

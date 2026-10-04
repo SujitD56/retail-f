@@ -39,7 +39,10 @@ export default async function RetailerProfilePage({ params }: { params: Promise<
       </div>
       <RetailerProfileHero retailer={retailer} />
       <StorySection retailer={retailer} />
-      <StoreCollections collections={collections} />
+      <StoreCollections
+        collections={collections.filter((c) => c.productIds.some((id) => products.some((p) => p.id === id)))}
+        retailerId={retailer.id}
+      />
       <RetailerProductsSection products={products} retailerName={retailer.name} />
       <RetailerTrustSection />
       <RetailerReviewsSection breakdown={breakdown} reviews={reviews} />

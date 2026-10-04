@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { Check, Download, HelpCircle, Package, ShieldCheck } from "lucide-react";
+import { Check, Download, HelpCircle, Package, ShieldCheck, XCircle } from "lucide-react";
 import { useOrdersStore } from "@/lib/store/orders";
 import { getProductsByIds } from "@/lib/data/products-client";
 import { payForOrder } from "@/lib/payments/razorpay";
@@ -34,6 +34,7 @@ const PAYMENT_STATUS_LABEL: Record<Order["paymentStatus"], string> = {
 export default function OrderTrackingPage() {
   const params = useParams<{ id: string }>();
   const getOrder = useOrdersStore((s) => s.getOrder);
+  const cancelOrder = useOrdersStore((s) => s.cancelOrder);
   const { toast } = useToast();
   const user = useAuthStore((s) => s.user);
 
@@ -41,6 +42,7 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [paymentSession, setPaymentSession] = useState<PaymentSession | null>(null);
   const [payingNow, setPayingNow] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [retailers, setRetailers] = useState<Retailer[]>([]);
 
@@ -89,6 +91,21 @@ export default function OrderTrackingPage() {
       }
     } finally {
       setPayingNow(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!order) return;
+    if (!window.confirm("Cancel this order? This cannot be undone.")) return;
+    setCancelling(true);
+    try {
+      const updated = await cancelOrder(order.id);
+      setOrder(updated);
+      toast({ title: "Order cancelled", variant: "success" });
+    } catch {
+      toast({ title: "Couldn't cancel this order", description: "It may have already shipped.", variant: "error" });
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -246,6 +263,11 @@ export default function OrderTrackingPage() {
             <Button variant="outline" onClick={() => toast({ title: "Support request sent", description: "Our team will reach out shortly." })}>
               <HelpCircle className="size-4" /> Need Help with your order?
             </Button>
+            {order.status === "processing" && (
+              <Button variant="danger" disabled={cancelling} onClick={handleCancelOrder}>
+                <XCircle className="size-4" /> {cancelling ? "Cancelling…" : "Cancel Order"}
+              </Button>
+            )}
           </div>
 
           <div className="flex flex-col gap-3 rounded-lg border border-cream-300 bg-cream-200 p-6">

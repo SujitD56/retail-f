@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
 import { useSavedRetailersStore } from "@/lib/store/saved-retailers";
+import { useMounted } from "@/lib/hooks/use-mounted";
 
 export function RetailerProfileHero({ retailer }: { retailer: Retailer }) {
   const { toast } = useToast();
-  const saved = useSavedRetailersStore((s) => s.has(retailer.id));
+  const mounted = useMounted();
+  const saved = useSavedRetailersStore((s) => s.has(retailer.id)) && mounted;
   const toggleSaved = useSavedRetailersStore((s) => s.toggle);
 
   return (
@@ -54,7 +56,10 @@ export function RetailerProfileHero({ retailer }: { retailer: Retailer }) {
           <button
             type="button"
             aria-label="Share store"
-            onClick={() => toast({ title: "Link copied to clipboard" })}
+            onClick={async () => {
+              await navigator.clipboard.writeText(window.location.href);
+              toast({ title: "Link copied to clipboard" });
+            }}
             className="flex size-11 items-center justify-center rounded-sm border border-white bg-white/15 text-white"
           >
             <Share2 className="size-4" />

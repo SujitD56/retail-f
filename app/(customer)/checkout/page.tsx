@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Truck } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
+import { useBuyNowStore } from "@/lib/store/buy-now";
 import { useOrdersStore } from "@/lib/store/orders";
+import { useAddressesStore } from "@/lib/store/addresses";
 import { useAuthStore } from "@/lib/store/auth";
 import { getProductsByIds } from "@/lib/data/products-client";
 import { payForOrder } from "@/lib/payments/razorpay";
@@ -26,6 +28,7 @@ import type { Product, Retailer } from "@/types";
 const STEPS = ["Address", "Delivery", "Payment", "Review"];
 const SHIPPING_PER_RETAILER = 150;
 const TAX_RATE = 0.18;
+const emptyAddress: AddressValues = { fullName: "", line1: "", city: "", state: "", postalCode: "", phone: "" };
 
 export default function CheckoutPage() {
   const mounted = useMounted();
@@ -36,13 +39,24 @@ export default function CheckoutPage() {
   const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
   const [placing, setPlacing] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
+  const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
+  const [billingAddress, setBillingAddress] = useState<AddressValues | null>(null);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
-  const items = useCartStore((s) => s.items);
+  const cartItems = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clear);
+  const buyNowItem = useBuyNowStore((s) => s.item);
+  const clearBuyNow = useBuyNowStore((s) => s.clear);
   const placeOrder = useOrdersStore((s) => s.placeOrder);
+  const saveAddress = useAddressesStore((s) => s.add);
   const user = useAuthStore((s) => s.user);
+
+  // Buy Now checks out only the single product selected on the PDP,
+  // bypassing whatever else is already sitting in the cart.
+  const isBuyNow = searchParams.get("buyNow") === "1" && Boolean(buyNowItem);
+  const items = isBuyNow && buyNowItem ? [buyNowItem] : cartItems;
 
   const [products, setProducts] = useState<Product[] | null>(null);
   const [retailers, setRetailers] = useState<Retailer[]>([]);
@@ -120,7 +134,12 @@ export default function CheckoutPage() {
       // the cart regardless of what happens with the payment widget below,
       // same as COD already does. A customer who backs out of paying
       // retries from the order page, not by re-running checkout.
-      clearCart();
+      if (isBuyNow) {
+        clearBuyNow();
+      } else {
+        clearCart();
+      }
+      saveAddress(address);
 
       if (paymentSession) {
         const paid = await payForOrder({
@@ -266,14 +285,93 @@ export default function CheckoutPage() {
               </div>
             )}
             <label className="flex items-center gap-2 text-sm text-ink-700">
-              <input type="checkbox" defaultChecked className="size-4 accent-primary-600" />
+              <input
+                type="checkbox"
+                checked={billingSameAsShipping}
+                onChange={(e) => setBillingSameAsShipping(e.target.checked)}
+                className="size-4 accent-primary-600"
+              />
               Billing address is same as shipping address
             </label>
+            {!billingSameAsShipping && (
+              <div className="flex flex-col gap-4 rounded-md border border-cream-300 p-5">
+                <h3 className="text-sm font-semibold text-ink-900">Billing Address</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="billFullName" required>Full Name</Label>
+                    <Input
+                      id="billFullName"
+                      placeholder="Priya Sharma"
+                      value={billingAddress?.fullName ?? ""}
+                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), fullName: e.target.value })}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="billLine1" required>Address</Label>
+                    <Textarea
+                      id="billLine1"
+                      placeholder="42 MG Road"
+                      value={billingAddress?.line1 ?? ""}
+                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), line1: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="billCity" required>City</Label>
+                    <Input
+                      id="billCity"
+                      placeholder="Bangalore"
+                      value={billingAddress?.city ?? ""}
+                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), city: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="billState" required>State</Label>
+                    <Input
+                      id="billState"
+                      placeholder="Karnataka"
+                      value={billingAddress?.state ?? ""}
+                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), state: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="billPostalCode" required>PIN Code</Label>
+                    <Input
+                      id="billPostalCode"
+                      placeholder="560001"
+                      value={billingAddress?.postalCode ?? ""}
+                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), postalCode: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="billPhone" required>Phone</Label>
+                    <Input
+                      id="billPhone"
+                      placeholder="+91 98765 43210"
+                      value={billingAddress?.phone ?? ""}
+                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex gap-3">
               <Button variant="secondary" onClick={() => setStep(2)}>
                 Back
               </Button>
-              <Button onClick={() => setStep(4)}>Continue to Review</Button>
+              <Button
+                onClick={() => {
+                  if (!billingSameAsShipping) {
+                    const parsed = addressSchema.safeParse(billingAddress);
+                    if (!parsed.success) {
+                      toast({ title: "Fill in a complete billing address", variant: "error" });
+                      return;
+                    }
+                  }
+                  setStep(4);
+                }}
+              >
+                Continue to Review
+              </Button>
             </div>
           </div>
         )}

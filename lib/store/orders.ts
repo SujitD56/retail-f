@@ -23,6 +23,7 @@ interface OrdersState {
   placeOrder: (input: PlaceOrderInput) => Promise<OrderWithPayment>;
   getOrder: (orderNumber: string) => Promise<OrderWithPayment | null>;
   getAllOrders: () => Promise<Order[]>;
+  cancelOrder: (orderNumber: string) => Promise<Order>;
 }
 
 /**
@@ -48,5 +49,10 @@ export const useOrdersStore = create<OrdersState>()(() => ({
   getAllOrders: async () => {
     const { items } = await api.get<{ items: Order[] }>("/orders/mine");
     return items;
+  },
+
+  cancelOrder: async (orderNumber) => {
+    const { order } = await api.patch<{ order: Order }>(`/orders/${orderNumber}/cancel`, {});
+    return order;
   },
 }));

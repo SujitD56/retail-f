@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, Sparkles } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
@@ -140,8 +139,8 @@ export default function CartPage() {
             <Button size="lg" className="w-full uppercase" onClick={() => router.push("/checkout")}>
               Proceed to Checkout
             </Button>
-            <Button asChild variant="outline" className="w-full uppercase">
-              <Link href="/sarees">Continue Shopping</Link>
+            <Button variant="outline" className="w-full uppercase" onClick={() => router.back()}>
+              Continue Shopping
             </Button>
           </div>
         </div>

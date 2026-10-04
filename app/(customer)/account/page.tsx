@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Award, Bell, MapPin, Settings as SettingsIcon, Star } from "lucide-react";
+import { Award, Bell, Settings as SettingsIcon, Star } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useOrdersStore } from "@/lib/store/orders";
 import { useWishlistStore } from "@/lib/store/wishlist";
@@ -12,6 +12,7 @@ import { AccountSidebarNav, type AccountTab } from "@/components/customer/accoun
 import { ProfilePanel } from "@/components/customer/account/profile-panel";
 import { OrdersPanel } from "@/components/customer/account/orders-panel";
 import { AccountPlaceholderPanel } from "@/components/customer/account/placeholder-panel";
+import { AddressesPanel } from "@/components/customer/account/addresses-panel";
 import { WishlistGrid } from "@/components/customer/wishlist-grid";
 import { RetailerCard } from "@/components/customer/retailer-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -107,9 +108,7 @@ export default function AccountPage() {
           )}
         </div>
       )}
-      {tab === "Addresses" && (
-        <AccountPlaceholderPanel icon={MapPin} title="No saved addresses" description="Addresses you use at checkout will be saved here for faster future orders." />
-      )}
+      {tab === "Addresses" && <AddressesPanel />}
       {tab === "Reviews" && (
         <AccountPlaceholderPanel icon={Star} title="No reviews yet" description="Reviews you write for delivered orders will appear here." />
       )}

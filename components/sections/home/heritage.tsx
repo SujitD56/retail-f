@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function Heritage() {
@@ -19,8 +20,8 @@ export function Heritage() {
             heritage.
           </p>
         </div>
-        <Button variant="outline" size="lg" className="w-fit uppercase">
-          Discover Ilkal
+        <Button asChild variant="outline" size="lg" className="w-fit uppercase">
+          <Link href="/sarees">Discover Ilkal</Link>
         </Button>
       </div>
       <div className="flex h-[280px] flex-1 gap-4 sm:h-[360px] sm:gap-6 lg:h-[480px]">

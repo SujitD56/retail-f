@@ -8,6 +8,7 @@ export interface PlpFilters {
   retailerIds: string[];
   minRating: number;
   inStockOnly: boolean;
+  outOfStockOnly: boolean;
 }
 
 export const DEFAULT_PLP_FILTERS: PlpFilters = {
@@ -18,6 +19,7 @@ export const DEFAULT_PLP_FILTERS: PlpFilters = {
   retailerIds: [],
   minRating: 0,
   inStockOnly: false,
+  outOfStockOnly: false,
 };
 
 export type SortOption = "best-selling" | "price-asc" | "price-desc" | "rating" | "newest";

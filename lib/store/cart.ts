@@ -8,10 +8,12 @@ import { useAuthStore } from "@/lib/store/auth";
 
 interface CartState {
   items: CartItem[];
-  addItem: (productId: string, quantity?: number) => void;
+  /** Returns "already-in-bag" without changing quantity if the product is already in the cart — quantity changes only happen explicitly via setQuantity. */
+  addItem: (productId: string, quantity?: number) => "added" | "already-in-bag";
   removeItem: (productId: string) => void;
   setQuantity: (productId: string, quantity: number) => void;
   clear: () => void;
+  /** Number of distinct products in the bag — not the sum of quantities. */
   totalItems: () => number;
   /** Called right after login: merges whatever was in this (guest) cart into the server cart, then adopts the merged, canonical result. */
   syncToServer: () => Promise<void>;
@@ -27,14 +29,10 @@ export const useCartStore = create<CartState>()(
       items: [],
 
       addItem: (productId, quantity = 1) => {
-        set((state) => {
-          const existing = state.items.find((i) => i.productId === productId);
-          if (existing) {
-            return { items: state.items.map((i) => (i.productId === productId ? { ...i, quantity: i.quantity + quantity } : i)) };
-          }
-          return { items: [...state.items, { productId, quantity }] };
-        });
+        if (get().items.some((i) => i.productId === productId)) return "already-in-bag";
+        set((state) => ({ items: [...state.items, { productId, quantity }] }));
         if (isAuthed()) api.post("/cart/items", { productId, quantity }).catch(() => undefined);
+        return "added";
       },
 
       removeItem: (productId) => {
@@ -54,7 +52,7 @@ export const useCartStore = create<CartState>()(
         if (isAuthed()) api.delete("/cart").catch(() => undefined);
       },
 
-      totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+      totalItems: () => get().items.length,
 
       syncToServer: async () => {
         const local = get().items;
