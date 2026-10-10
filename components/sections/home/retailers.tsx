@@ -30,15 +30,8 @@ export function RetailersShowcase({ retailers, products }: { retailers: Retailer
           className="flex gap-8 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {retailers.map((r) => (
-            <div key={r.id} className="w-[85%] shrink-0 snap-start sm:w-[360px]">
-              <RetailerCard
-                retailer={r}
-                previewProducts={
-                  products.filter((p) => p.retailerId === r.id).length
-                    ? products.filter((p) => p.retailerId === r.id)
-                    : products
-                }
-              />
+            <div key={r.id} className="flex w-[85%] shrink-0 snap-start sm:w-[360px]">
+              <RetailerCard retailer={r} previewProducts={products.filter((p) => p.retailerId === r.id)} />
             </div>
           ))}
         </div>

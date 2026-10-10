@@ -19,6 +19,10 @@ export default async function ShopTheEventPage({ params }: { params: Promise<{ i
   const winnerProducts = winnerProductsRaw.filter((p): p is NonNullable<typeof p> => Boolean(p));
   const trending = allProducts.slice(0, 8);
   const retailerName = (id: string) => allRetailers.find((r) => r.id === id)?.name;
+  const participatingRetailerIds = Array.from(new Set(entries.map((e) => e.retailerId)));
+  const participatingRetailers = participatingRetailerIds
+    .map((id) => allRetailers.find((r) => r.id === id))
+    .filter((r): r is NonNullable<typeof r> => Boolean(r));
 
   return (
     <div>
@@ -42,14 +46,16 @@ export default async function ShopTheEventPage({ params }: { params: Promise<{ i
         </div>
       </section>
 
-      <section className="px-16 py-16">
-        <h2 className="mb-8 font-display text-3xl text-primary-600">Shop by Participating Retailer</h2>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {allRetailers.slice(0, 3).map((r) => (
-            <RetailerCard key={r.id} retailer={r} previewProducts={allProducts.filter((p) => p.retailerId === r.id)} />
-          ))}
-        </div>
-      </section>
+      {participatingRetailers.length > 0 && (
+        <section className="px-16 py-16">
+          <h2 className="mb-8 font-display text-3xl text-primary-600">Shop by Participating Retailer</h2>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {participatingRetailers.slice(0, 3).map((r) => (
+              <RetailerCard key={r.id} retailer={r} previewProducts={allProducts.filter((p) => p.retailerId === r.id)} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

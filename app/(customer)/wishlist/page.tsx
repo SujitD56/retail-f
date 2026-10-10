@@ -28,10 +28,12 @@ export default function WishlistPage() {
     Promise.all([
       api.get<{ items: Retailer[] }>("/retailers"),
       api.get<{ items: Product[] }>("/products?pageSize=100"),
-    ]).then(([{ items: retailers }, { items: products }]) => {
-      setAllRetailers(retailers);
-      setAllProducts(products);
-    });
+    ])
+      .then(([{ items: retailers }, { items: products }]) => {
+        setAllRetailers(retailers);
+        setAllProducts(products);
+      })
+      .catch(() => undefined); // Transient API hiccup — don't crash the whole wishlist over it.
   }, [mounted, tab]);
 
   const counts = { Products: wishlistCount, Retailers: savedRetailerIds.length };

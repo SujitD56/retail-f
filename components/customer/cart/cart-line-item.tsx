@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { Trash2 } from "lucide-react";
 import type { Product } from "@/types";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { useCartStore } from "@/lib/store/cart";
@@ -28,8 +29,12 @@ export function CartLineItem({ product, quantity }: { product: Product; quantity
         <div className="flex items-center gap-4">
           <span className="text-sm font-semibold text-primary-600">{formatINR(product.price)}</span>
           <span className="text-ink-500">|</span>
-          <button type="button" onClick={() => removeItem(product.id)} className="text-[13px] text-primary-600 underline">
-            Remove
+          <button
+            type="button"
+            onClick={() => removeItem(product.id)}
+            className="flex items-center gap-1.5 text-[13px] font-medium text-danger-500"
+          >
+            <Trash2 className="size-3.5" /> Remove
           </button>
         </div>
       </div>

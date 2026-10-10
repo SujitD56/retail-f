@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 const SPEC_ROWS = (product: NonNullable<Awaited<ReturnType<typeof getProductBySlug>>>) => [
   ["Material", product.material],
   ["Length & Width", product.lengthWidth],
-  ["Weave Type", "Handloom GI-vetted loop joint"],
+  ["Weave Type", product.weaveType],
   ["Border Type", product.borderType],
   ["Color", product.color],
 ];
@@ -47,6 +47,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const discount = product.compareAtPrice
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : null;
+
+  const deliveryFrom = new Date();
+  deliveryFrom.setDate(deliveryFrom.getDate() + 5);
+  const deliveryTo = new Date();
+  deliveryTo.setDate(deliveryTo.getDate() + 8);
+  const deliveryWindow = `${deliveryFrom.toLocaleDateString("en-US", { month: "long", day: "numeric" })} – ${deliveryTo.toLocaleDateString("en-US", { day: "numeric" })}`;
 
   return (
     <div>
@@ -115,7 +121,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <div className="flex items-center gap-3 rounded-md border border-success-500 bg-[#e2ece9]/[0.13] p-4">
             <Truck className="size-[18px] text-success-500" />
             <p className="text-sm text-success-500">
-              Guaranteed safe delivery by <span className="font-bold">August 22 – 25</span> with tracking.
+              Guaranteed safe delivery by <span className="font-bold">{deliveryWindow}</span> with tracking.
             </p>
           </div>
 

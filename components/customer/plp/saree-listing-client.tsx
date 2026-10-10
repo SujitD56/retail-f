@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState, EmptyStatePresets } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 12;
 
 export function SareeListingClient({
   products,

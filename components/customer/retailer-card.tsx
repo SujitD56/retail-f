@@ -17,8 +17,10 @@ export function RetailerCard({ retailer, previewProducts }: { retailer: Retailer
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-cream-300 bg-white">
-      <div className="relative h-40 w-full">
-        <Image src={retailer.coverUrl} alt="" fill sizes="33vw" className="object-cover" />
+      <div className="relative h-40 w-full bg-cream-100">
+        {retailer.coverUrl && (
+          <Image src={retailer.coverUrl} alt="" fill sizes="33vw" className="object-cover" />
+        )}
         <button
           type="button"
           aria-label={saved ? "Unfollow retailer" : "Add retailer to wishlist"}
@@ -31,10 +33,12 @@ export function RetailerCard({ retailer, previewProducts }: { retailer: Retailer
           <Heart className={cn("size-[18px]", saved ? "fill-primary-600 text-primary-600" : "text-ink-900")} />
         </button>
       </div>
-      <div className="flex flex-col gap-5 p-6">
+      <div className="flex flex-1 flex-col gap-5 p-6">
         <div className="flex items-center gap-4">
-          <div className="relative size-14 shrink-0 overflow-hidden rounded-full border-[3px] border-white shadow-card">
-            <Image src={retailer.logoUrl} alt={retailer.name} fill sizes="56px" className="object-cover" />
+          <div className="relative size-14 shrink-0 overflow-hidden rounded-full border-[3px] border-white bg-cream-100 shadow-card">
+            {retailer.logoUrl && (
+              <Image src={retailer.logoUrl} alt={retailer.name} fill sizes="56px" className="object-cover" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
@@ -71,7 +75,7 @@ export function RetailerCard({ retailer, previewProducts }: { retailer: Retailer
           </div>
         </div>
 
-        <Button asChild className="w-full uppercase">
+        <Button asChild className="mt-auto w-full uppercase">
           <Link href={`/retailers/${retailer.slug}`}>Visit Store</Link>
         </Button>
       </div>

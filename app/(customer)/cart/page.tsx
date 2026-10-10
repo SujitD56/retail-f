@@ -30,11 +30,16 @@ export default function CartPage() {
     if (!mounted) return;
     let cancelled = false;
     (async () => {
-      const productList = await getProductsByIds(items.map((i) => i.productId));
-      if (cancelled) return;
-      setProducts(productList);
-      const { items: retailerList } = await api.get<{ items: Retailer[] }>("/retailers");
-      if (!cancelled) setRetailers(retailerList);
+      try {
+        const productList = await getProductsByIds(items.map((i) => i.productId));
+        if (cancelled) return;
+        setProducts(productList);
+        const { items: retailerList } = await api.get<{ items: Retailer[] }>("/retailers");
+        if (!cancelled) setRetailers(retailerList);
+      } catch {
+        // Transient API hiccup — don't crash the whole cart page over it.
+        if (!cancelled) setProducts((prev) => prev ?? []);
+      }
     })();
     return () => {
       cancelled = true;

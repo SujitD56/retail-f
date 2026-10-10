@@ -11,7 +11,7 @@ import { applyPlpFilters } from "@/components/customer/plp/filter-products";
 import { DEFAULT_PLP_FILTERS, type PlpFilters } from "@/components/customer/plp/types";
 import { cn } from "@/lib/utils";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 12;
 
 /**
  * Single homepage catalog section — mixes every retailer's products (ranked by

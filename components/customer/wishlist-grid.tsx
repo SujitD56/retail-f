@@ -19,12 +19,18 @@ export function WishlistGrid() {
   useEffect(() => {
     if (!mounted) return;
     let cancelled = false;
-    getProductsByIds(productIds).then(async (items) => {
-      if (cancelled) return;
-      setProducts(items);
-      const { items: allRetailers } = await api.get<{ items: Retailer[] }>("/retailers");
-      if (!cancelled) setRetailers(allRetailers);
-    });
+    (async () => {
+      try {
+        const items = await getProductsByIds(productIds);
+        if (cancelled) return;
+        setProducts(items);
+        const { items: allRetailers } = await api.get<{ items: Retailer[] }>("/retailers");
+        if (!cancelled) setRetailers(allRetailers);
+      } catch {
+        // Transient API hiccup — don't crash the whole wishlist over it.
+        if (!cancelled) setProducts((prev) => prev ?? []);
+      }
+    })();
     return () => {
       cancelled = true;
     };

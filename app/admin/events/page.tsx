@@ -102,6 +102,9 @@ export default function AdminEventsDashboardPage() {
                       <Link href="/admin/events/moderation" className="text-sm font-semibold text-primary-600 hover:underline">
                         Moderate
                       </Link>
+                      <Link href="/admin/events/analytics" className="text-sm font-semibold text-primary-600 hover:underline">
+                        Analytics
+                      </Link>
                       <Link href="/admin/events/new" className="text-sm font-semibold text-ink-700 hover:underline">
                         Edit
                       </Link>
