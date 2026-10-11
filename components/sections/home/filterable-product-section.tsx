@@ -149,8 +149,8 @@ export function FilterableProductSection({
           <EmptyState {...EmptyStatePresets.noSareesFound} onAction={() => updateFilters(DEFAULT_PLP_FILTERS)} actionHref={undefined} />
         ) : (
           <div className="grid grid-cols-2 items-stretch gap-6 sm:grid-cols-3 lg:grid-cols-3">
-            {pageItems.map((p) => (
-              <ProductCard key={p.id} product={p} retailerName={retailerName(p.retailerId)} />
+            {pageItems.map((p, i) => (
+              <ProductCard key={p.id} product={p} retailerName={retailerName(p.retailerId)} priority={i < 3} />
             ))}
           </div>
         )}

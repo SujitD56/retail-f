@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const STATS = [
   { value: "500+", label: "Verified Retailers" },
@@ -28,12 +29,11 @@ export function RetailerAuthShell({
   return (
     <div className="flex min-h-screen items-stretch bg-cream-100">
       <div className="hidden w-[45%] shrink-0 flex-col justify-between border-r-4 border-gold-400 bg-primary-600 p-16 lg:flex">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-sm bg-gold-400 font-display text-3xl font-bold text-primary-600">I</span>
-          <span className="flex flex-col gap-0.5">
-            <span className="font-display text-2xl font-bold tracking-wide text-white">ILKAL THREADS</span>
-            <span className="text-[11px] font-semibold uppercase tracking-[2px] text-gold-400">Retailer Portal</span>
-          </span>
+        <Link href="/" className="flex items-center gap-4">
+          <div className="rounded-md bg-cream-100 p-2">
+            <Image src="/images/brand/kaushaya-logo-sm.png" alt="Kaushaya" width={200} height={112} className="h-16 w-auto object-contain" />
+          </div>
+          <span className="text-[11px] font-semibold uppercase tracking-[2px] text-gold-400">Retailer Portal</span>
         </Link>
 
         <div className="flex flex-col gap-6">

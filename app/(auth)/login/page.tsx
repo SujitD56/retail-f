@@ -10,8 +10,6 @@ import { AuthSplitCard } from "@/components/customer/auth-split-card";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { FormCheckbox } from "@/components/ui/form-checkbox";
-import { GoogleGlyph } from "@/components/ui/social-glyphs";
-import { Phone } from "lucide-react";
 import { loginSchema, type LoginValues } from "@/lib/validations/auth";
 import { useAuthStore } from "@/lib/store/auth";
 import { useCartStore } from "@/lib/store/cart";
@@ -38,8 +36,8 @@ export default function LoginPage() {
       await loginCustomer(values.email, values.password);
       // Merge whatever was in the guest cart/wishlist into the account.
       await Promise.all([useCartStore.getState().syncToServer(), useWishlistStore.getState().syncToServer()]);
-      toast({ title: "Welcome back", description: "You're signed in to Ilkal Threads.", variant: "success" });
-      router.push("/account");
+      toast({ title: "Welcome back", description: "You're signed in to Kaushaya.", variant: "success" });
+      router.push("/sarees");
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setError("password", { message: "Incorrect email or password" });
@@ -58,7 +56,7 @@ export default function LoginPage() {
     >
       <div className="flex flex-col gap-1">
         <h1 className="font-display text-[32px] text-primary-600">Welcome Back</h1>
-        <p className="text-sm text-ink-700">Sign in to your Ilkal Threads account</p>
+        <p className="text-sm text-ink-700">Sign in to your Kaushaya account</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -99,24 +97,13 @@ export default function LoginPage() {
           {isSubmitting ? "Signing in…" : "Sign In"}
         </Button>
 
-        <div className="flex items-center gap-4">
-          <span className="h-px flex-1 bg-cream-300" />
-          <span className="text-xs uppercase text-ink-500">or continue with</span>
-          <span className="h-px flex-1 bg-cream-300" />
-        </div>
-
-        <div className="flex gap-3">
-          <Button type="button" variant="secondary" className="flex-1">
-            <GoogleGlyph className="size-4" /> Google
-          </Button>
-          <Button type="button" variant="secondary" className="flex-1">
-            <Phone className="size-4" /> Phone OTP
-          </Button>
-        </div>
+        {/* Google sign-in and Phone OTP are disabled until a real OAuth app
+            and SMS provider are wired up on the backend — these buttons had
+            no handler at all and silently did nothing. */}
       </form>
 
       <p className="text-center text-sm text-ink-700">
-        New to Ilkal Threads?{" "}
+        New to Kaushaya?{" "}
         <Link href="/signup" className="font-semibold text-primary-600">
           Create an account
         </Link>

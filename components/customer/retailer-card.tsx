@@ -8,12 +8,14 @@ import { StarRating } from "@/components/ui/star-rating";
 import { Button } from "@/components/ui/button";
 import { useSavedRetailersStore } from "@/lib/store/saved-retailers";
 import { useMounted } from "@/lib/hooks/use-mounted";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { cn } from "@/lib/utils";
 
 export function RetailerCard({ retailer, previewProducts }: { retailer: Retailer; previewProducts: Product[] }) {
   const mounted = useMounted();
   const saved = useSavedRetailersStore((s) => s.has(retailer.id)) && mounted;
   const toggleSaved = useSavedRetailersStore((s) => s.toggle);
+  const requireAuth = useRequireAuth();
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-cream-300 bg-white">
@@ -26,7 +28,7 @@ export function RetailerCard({ retailer, previewProducts }: { retailer: Retailer
           aria-label={saved ? "Unfollow retailer" : "Add retailer to wishlist"}
           onClick={(e) => {
             e.preventDefault();
-            toggleSaved(retailer.id);
+            requireAuth(() => toggleSaved(retailer.id));
           }}
           className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.1)]"
         >

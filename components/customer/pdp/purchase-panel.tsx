@@ -11,11 +11,13 @@ import { useBuyNowStore } from "@/lib/store/buy-now";
 import { useWishlistStore } from "@/lib/store/wishlist";
 import { useToast } from "@/components/ui/toast";
 import { useMounted } from "@/lib/hooks/use-mounted";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { cn } from "@/lib/utils";
 
 export function PurchasePanel({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
   const mounted = useMounted();
+  const requireAuth = useRequireAuth();
   const addItem = useCartStore((s) => s.addItem);
   const setBuyNowItem = useBuyNowStore((s) => s.setItem);
   const inWishlist = useWishlistStore((s) => s.has(product.id)) && mounted;
@@ -41,23 +43,23 @@ export function PurchasePanel({ product }: { product: Product }) {
       <Button
         size="lg"
         className="flex-1 uppercase"
-        disabled={!product.inStock}
-        onClick={() => {
-          const result = addItem(product.id, quantity);
-          if (result === "already-in-bag") {
-            toast({ title: "Already in your bag", description: `${product.name} is already in your cart.` });
-          } else {
-            toast({ title: "Added to cart", description: `${product.name} × ${quantity}`, variant: "success" });
-          }
-          router.push("/cart");
-        }}
+        onClick={() =>
+          requireAuth(() => {
+            const result = addItem(product.id, quantity);
+            if (result === "already-in-bag") {
+              toast({ title: "Already in your bag", description: `${product.name} is already in your cart.` });
+            } else {
+              toast({ title: "Added to cart", description: `${product.name} × ${quantity}`, variant: "success" });
+            }
+          })
+        }
       >
-        {product.inStock ? "Add to Cart" : "Out of Stock"}
+        Add to Cart
       </Button>
       <button
         type="button"
         aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
-        onClick={() => toggleWishlist(product.id)}
+        onClick={() => requireAuth(() => toggleWishlist(product.id))}
         className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-cream-300 bg-white hover:bg-cream-100"
       >
         <Heart className={cn("size-5", inWishlist ? "fill-primary-600 text-primary-600" : "text-ink-700")} />

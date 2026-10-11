@@ -16,11 +16,11 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   title: {
-    default: "Ilkal Threads — Handloom Saree Marketplace",
-    template: "%s · Ilkal Threads",
+    default: "Kaushaya — Handloom Saree Marketplace",
+    template: "%s · Kaushaya",
   },
   description:
-    "Ilkal Threads connects customers with GI-verified handloom saree retailers from Karnataka, empowering weaver communities since 2026.",
+    "Kaushaya connects customers with GI-verified handloom saree retailers from Karnataka, empowering weaver communities since 2026.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

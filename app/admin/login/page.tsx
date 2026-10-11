@@ -103,7 +103,7 @@ export default function AdminLoginPage() {
       <SecurityNotice text="Authorized personnel only. All access, events, and active sessions are monitored and logged." />
 
       <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-secure-500">
-        <CheckCircle2 className="size-3.5" /> Real credential + TOTP MFA check against the Ilkal Threads API.
+        <CheckCircle2 className="size-3.5" /> Real credential + TOTP MFA check against the Kaushaya API.
       </p>
     </AdminSecureShell>
   );

@@ -15,7 +15,7 @@ export default function RootNotFound() {
         </p>
       </div>
       <Button asChild>
-        <Link href="/">Back to Ilkal Threads</Link>
+        <Link href="/">Back to Kaushaya</Link>
       </Button>
     </div>
   );

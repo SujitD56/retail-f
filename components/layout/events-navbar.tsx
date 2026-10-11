@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Search, ShoppingBag } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useCartStore } from "@/lib/store/cart";
@@ -30,8 +31,8 @@ export function EventsNavbar() {
         </p>
       </div>
       <header className="flex h-20 items-center justify-between border-b border-cream-300 bg-cream-100 px-16">
-        <Link href="/" className="font-display text-[28px] font-bold text-primary-600">
-          Ilkal Threads
+        <Link href="/" className="flex items-center">
+          <Image src="/images/brand/kaushaya-logo-sm.png" alt="Kaushaya" width={140} height={78} className="h-16 w-auto object-contain" />
         </Link>
         <nav className="flex items-center gap-8">
           {LINKS.map((link) => (

@@ -45,6 +45,8 @@ export default function OrderTrackingPage() {
   const [cancelling, setCancelling] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [retailers, setRetailers] = useState<Retailer[]>([]);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const [requestingHelp, setRequestingHelp] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,7 +80,7 @@ export default function OrderTrackingPage() {
       const paid = await payForOrder({
         orderNumber: order.id,
         session: paymentSession,
-        name: "Ilkal Threads",
+        name: "Kaushaya",
         description: `Order ${order.id}`,
         prefill: { name: order.shippingAddress.fullName, email: user?.email, contact: order.shippingAddress.phone },
       });
@@ -91,6 +93,39 @@ export default function OrderTrackingPage() {
       }
     } finally {
       setPayingNow(false);
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+    setDownloadingInvoice(true);
+    try {
+      const res = await fetch(`/api/backend/orders/${order.id}/invoice`, { credentials: "include" });
+      if (!res.ok) throw new Error("Invoice download failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${order.id}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({ title: "Couldn't download the invoice — try again", variant: "error" });
+    } finally {
+      setDownloadingInvoice(false);
+    }
+  };
+
+  const handleRequestHelp = async () => {
+    if (!order) return;
+    setRequestingHelp(true);
+    try {
+      await api.post("/support/tickets", { orderId: order.id, email: user?.email, message: `Need help with order ${order.id}` });
+      toast({ title: "Support request sent", description: "Our team will reach out shortly." });
+    } catch {
+      toast({ title: "Couldn't send your request — try again", variant: "error" });
+    } finally {
+      setRequestingHelp(false);
     }
   };
 
@@ -144,7 +179,7 @@ export default function OrderTrackingPage() {
 
   return (
     <div className="flex flex-col gap-8 px-5 py-8 sm:px-10 lg:px-20">
-      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "My Account", href: "/account" }, { label: order.id }]} />
+      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Orders", href: "/account?tab=Orders" }, { label: order.id }]} />
 
       <div className="flex flex-col gap-10 lg:flex-row">
         <div className="flex flex-1 flex-col gap-8">
@@ -158,7 +193,7 @@ export default function OrderTrackingPage() {
             </p>
           </div>
 
-          {order.paymentStatus !== "paid" && order.paymentMethod !== "cod" && (
+          {order.paymentStatus !== "paid" && order.paymentMethod !== "cod" && order.status !== "cancelled" && (
             <div className="flex flex-col gap-3 rounded-lg border border-warning-500/30 bg-warning-50 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-display text-lg text-ink-900">Payment not completed</p>
@@ -257,11 +292,11 @@ export default function OrderTrackingPage() {
                 {order.paymentStatus === "paid" ? "Total Paid" : "Total Due"}: {formatINR(order.total)}
               </p>
             </div>
-            <Button variant="secondary" onClick={() => toast({ title: "Invoice download started" })}>
-              <Download className="size-4" /> Download Invoice (PDF)
+            <Button variant="secondary" disabled={downloadingInvoice} onClick={handleDownloadInvoice}>
+              <Download className="size-4" /> {downloadingInvoice ? "Downloading…" : "Download Invoice (PDF)"}
             </Button>
-            <Button variant="outline" onClick={() => toast({ title: "Support request sent", description: "Our team will reach out shortly." })}>
-              <HelpCircle className="size-4" /> Need Help with your order?
+            <Button variant="outline" disabled={requestingHelp} onClick={handleRequestHelp}>
+              <HelpCircle className="size-4" /> {requestingHelp ? "Sending…" : "Need Help with your order?"}
             </Button>
             {order.status === "processing" && (
               <Button variant="danger" disabled={cancelling} onClick={handleCancelOrder}>

@@ -25,6 +25,18 @@ export default function CartPage() {
 
   const [products, setProducts] = useState<Product[] | null>(null);
   const [retailers, setRetailers] = useState<Retailer[]>([]);
+  // Tracks only DEselected items — everything in the cart is selected for
+  // checkout by default, so a freshly-added item never needs an explicit
+  // "select" step, and a removed item just disappears from this set on its own.
+  const [deselected, setDeselected] = useState<Set<string>>(new Set());
+  const toggleSelect = (productId: string) => {
+    setDeselected((prev) => {
+      const next = new Set(prev);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!mounted) return;
@@ -61,6 +73,8 @@ export default function CartPage() {
     .map((item) => ({ item, product: products.find((p) => p.id === item.productId) }))
     .filter((x): x is { item: (typeof items)[number]; product: NonNullable<(typeof x)["product"]> } => Boolean(x.product));
 
+  const isOutOfStock = (item: (typeof items)[number], product: Product) => !product.inStock || item.quantity > product.stockCount;
+
   const byRetailer = new Map<string, typeof resolvedItems>();
   for (const entry of resolvedItems) {
     const list = byRetailer.get(entry.product.retailerId) ?? [];
@@ -68,8 +82,10 @@ export default function CartPage() {
     byRetailer.set(entry.product.retailerId, list);
   }
 
-  const subtotal = resolvedItems.reduce((sum, { item, product }) => sum + product.price * item.quantity, 0);
-  const shipping = byRetailer.size * SHIPPING_PER_RETAILER;
+  const selectedItems = resolvedItems.filter(({ item, product }) => !deselected.has(item.productId) && !isOutOfStock(item, product));
+  const selectedRetailerCount = new Set(selectedItems.map((e) => e.product.retailerId)).size;
+  const subtotal = selectedItems.reduce((sum, { item, product }) => sum + product.price * item.quantity, 0);
+  const shipping = selectedRetailerCount * SHIPPING_PER_RETAILER;
   const tax = Math.round(subtotal * TAX_RATE);
   const total = subtotal + shipping + tax;
 
@@ -89,12 +105,16 @@ export default function CartPage() {
           <h1 className="font-display text-4xl text-primary-600">Your Shopping Cart</h1>
           <p className="text-[15px] text-ink-700">
             You have {resolvedItems.reduce((n, e) => n + e.item.quantity, 0)} items in your cart from {byRetailer.size} distinct weavers/retailers.
+            {" "}
+            {selectedItems.length} selected for checkout.
           </p>
         </div>
 
         {Array.from(byRetailer.entries()).map(([retailerId, entries]) => {
           const retailer = retailers.find((r) => r.id === retailerId);
-          const groupSubtotal = entries.reduce((sum, { item, product }) => sum + product.price * item.quantity, 0);
+          const groupSubtotal = entries
+            .filter(({ item, product }) => !deselected.has(item.productId) && !isOutOfStock(item, product))
+            .reduce((sum, { item, product }) => sum + product.price * item.quantity, 0);
           return (
             <div key={retailerId} className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
@@ -106,9 +126,31 @@ export default function CartPage() {
                 )}
               </div>
               <div className="flex flex-col gap-3">
-                {entries.map(({ item, product }) => (
-                  <CartLineItem key={product.id} product={product} quantity={item.quantity} />
-                ))}
+                {entries.map(({ item, product }) => {
+                  const outOfStock = isOutOfStock(item, product);
+                  return (
+                    <div key={product.id} className="flex flex-col gap-1.5">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${product.name} for checkout`}
+                          checked={!deselected.has(item.productId) && !outOfStock}
+                          disabled={outOfStock}
+                          onChange={() => toggleSelect(item.productId)}
+                          className="mt-6 size-4 shrink-0 accent-primary-600 disabled:cursor-not-allowed disabled:opacity-40"
+                        />
+                        <div className={outOfStock ? "flex-1 opacity-60" : "flex-1"}>
+                          <CartLineItem product={product} quantity={item.quantity} />
+                        </div>
+                      </div>
+                      {outOfStock && (
+                        <p className="ml-7 text-[13px] font-medium text-danger-500">
+                          {!product.inStock ? "Out of stock — won't be included in checkout." : `Only ${product.stockCount} left — reduce quantity to check out this item.`}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <div className="flex items-center justify-between rounded-md bg-[#f0ece1] px-6 py-3">
                 <span className="text-sm text-ink-700">Subtotal for {retailer?.name ?? "Retailer"}</span>
@@ -141,7 +183,12 @@ export default function CartPage() {
             </div>
           )}
           <div className="flex flex-col gap-3">
-            <Button size="lg" className="w-full uppercase" onClick={() => router.push("/checkout")}>
+            <Button
+              size="lg"
+              className="w-full uppercase"
+              disabled={selectedItems.length === 0}
+              onClick={() => router.push(`/checkout?items=${selectedItems.map(({ item }) => item.productId).join(",")}`)}
+            >
               Proceed to Checkout
             </Button>
             <Button variant="outline" className="w-full uppercase" onClick={() => router.back()}>

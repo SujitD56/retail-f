@@ -258,7 +258,7 @@ export function ProductForm({
             <p className="font-display text-lg text-ink-900">SEO / Search Preview</p>
             <div className="mt-4 rounded-md border border-cream-300 bg-cream-100 p-4">
               <p className="truncate text-sm font-medium text-info-500">{title || "Product title"}</p>
-              <p className="mt-1 truncate text-xs text-success-500">ilkalthreads.com/product/{title.toLowerCase().replace(/\s+/g, "-")}</p>
+              <p className="mt-1 truncate text-xs text-success-500">kaushaya.com/product/{title.toLowerCase().replace(/\s+/g, "-")}</p>
               <p className="mt-1.5 text-xs leading-relaxed text-ink-700 line-clamp-2">
                 Buy authentic {title} — 100% verified pure handloom products…
               </p>

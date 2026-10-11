@@ -1,20 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Check, Share2 } from "lucide-react";
 import type { Retailer } from "@/types";
 import { StarRating } from "@/components/ui/star-rating";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ShareDialog } from "@/components/ui/share-dialog";
 import { useToast } from "@/components/ui/toast";
 import { useSavedRetailersStore } from "@/lib/store/saved-retailers";
 import { useMounted } from "@/lib/hooks/use-mounted";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 
 export function RetailerProfileHero({ retailer }: { retailer: Retailer }) {
   const { toast } = useToast();
+  const [shareOpen, setShareOpen] = useState(false);
   const mounted = useMounted();
   const saved = useSavedRetailersStore((s) => s.has(retailer.id)) && mounted;
   const toggleSaved = useSavedRetailersStore((s) => s.toggle);
+  const requireAuth = useRequireAuth();
 
   return (
     <section className="relative flex flex-col gap-6 px-5 pb-12 pt-28 sm:px-10 lg:px-20">
@@ -44,10 +49,12 @@ export function RetailerProfileHero({ retailer }: { retailer: Retailer }) {
         <div className="flex items-center gap-3">
           <Button
             variant={saved ? "secondary" : "primary"}
-            onClick={() => {
-              toggleSaved(retailer.id);
-              toast({ title: saved ? `Unfollowed ${retailer.name}` : `Following ${retailer.name}`, variant: "success" });
-            }}
+            onClick={() =>
+              requireAuth(() => {
+                toggleSaved(retailer.id);
+                toast({ title: saved ? `Unfollowed ${retailer.name}` : `Following ${retailer.name}`, variant: "success" });
+              })
+            }
             className="uppercase"
           >
             {saved && <Check className="size-4" />}
@@ -56,16 +63,14 @@ export function RetailerProfileHero({ retailer }: { retailer: Retailer }) {
           <button
             type="button"
             aria-label="Share store"
-            onClick={async () => {
-              await navigator.clipboard.writeText(window.location.href);
-              toast({ title: "Link copied to clipboard" });
-            }}
+            onClick={() => setShareOpen(true)}
             className="flex size-11 items-center justify-center rounded-sm border border-white bg-white/15 text-white"
           >
             <Share2 className="size-4" />
           </button>
         </div>
       </div>
+      <ShareDialog open={shareOpen} onOpenChange={setShareOpen} title={retailer.name} />
 
       <div className="relative z-10 h-px w-full bg-white/20" />
 

@@ -21,6 +21,7 @@ export function SareeListingClient({
   initialCategory,
   header,
   hideCategoryFilter = false,
+  hideRetailerFilter = false,
 }: {
   products: Product[];
   retailers: Retailer[];
@@ -29,6 +30,8 @@ export function SareeListingClient({
   header?: React.ReactNode;
   /** Used by the Collection page, where the collection itself is the category. */
   hideCategoryFilter?: boolean;
+  /** Used by the Collection page when scoped to one retailer — filtering by retailer is redundant there. */
+  hideRetailerFilter?: boolean;
 }) {
   const [filters, setFilters] = useState<PlpFilters>({
     ...DEFAULT_PLP_FILTERS,
@@ -111,6 +114,7 @@ export function SareeListingClient({
         retailers={retailers}
         categoryCounts={categoryCounts}
         hideCategory={hideCategoryFilter}
+        hideRetailer={hideRetailerFilter}
         mobileOpen={mobileFiltersOpen}
         onMobileClose={() => setMobileFiltersOpen(false)}
       />
@@ -193,8 +197,8 @@ export function SareeListingClient({
           <EmptyState {...EmptyStatePresets.noSareesFound} onAction={() => updateFilters(DEFAULT_PLP_FILTERS)} actionHref={undefined} />
         ) : view === "grid" ? (
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-            {pageItems.map((p) => (
-              <ProductCard key={p.id} product={p} retailerName={retailerName(p.retailerId)} />
+            {pageItems.map((p, i) => (
+              <ProductCard key={p.id} product={p} retailerName={retailerName(p.retailerId)} priority={i < 3} />
             ))}
           </div>
         ) : (

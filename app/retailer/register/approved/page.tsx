@@ -15,7 +15,7 @@ export default function RetailerApprovedPage() {
     <RetailerStatusShell
       icon={Sparkles}
       iconClassName="bg-gold-50 text-gold-600"
-      title="Welcome to Ilkal Threads!"
+      title="Welcome to Kaushaya!"
       description="Your retailer account has been approved."
     >
       <div className="rounded-lg border border-gold-400 bg-gold-50 p-5 text-center">

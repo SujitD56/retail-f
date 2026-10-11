@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "About Us",
-  description: "The story behind Ilkal Threads — connecting customers with authentic, GI-verified handloom Ilkal saree retailers from Karnataka.",
+  description: "The story behind Kaushaya — connecting customers with authentic, GI-verified handloom Ilkal saree retailers from Karnataka.",
 };
 
 export default function AboutPage() {
@@ -17,9 +17,9 @@ export default function AboutPage() {
       </div>
 
       <div className="flex flex-col gap-3 px-5 pb-8 pt-12 sm:px-10 lg:px-20">
-        <h1 className="font-display text-4xl text-primary-600 sm:text-5xl">About Ilkal Threads</h1>
+        <h1 className="font-display text-4xl text-primary-600 sm:text-5xl">About Kaushaya</h1>
         <p className="max-w-2xl text-base text-ink-700">
-          Ilkal Threads connects customers with authentic, GI-verified handloom Ilkal saree retailers from
+          Kaushaya connects customers with authentic, GI-verified handloom Ilkal saree retailers from
           Karnataka — empowering weaver communities since 2026.
         </p>
       </div>
@@ -54,7 +54,7 @@ export default function AboutPage() {
         <p className="text-[13px] font-semibold uppercase text-gold-400">Weaver Welfare</p>
         <h2 className="font-display text-3xl text-primary-600 sm:text-4xl">Empowering the Hands Behind the Loom</h2>
         <p className="max-w-3xl text-base leading-[1.7] text-ink-700">
-          By connecting weaver-run retailers directly with customers, Ilkal Threads removes layers of middlemen so
+          By connecting weaver-run retailers directly with customers, Kaushaya removes layers of middlemen so
           more of every sale reaches the artisan communities who weave each saree. We work with weaver guilds across
           Ilkal, Bagalkot, Gadag, and Hubballi to help sustain fair wages and keep this centuries-old craft alive for
           future generations.

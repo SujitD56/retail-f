@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
 import { useWishlistStore } from "@/lib/store/wishlist";
+import { useSavedRetailersStore } from "@/lib/store/saved-retailers";
 import { useAuthStore } from "@/lib/store/auth";
 import { useMounted } from "@/lib/hooks/use-mounted";
 import { cn } from "@/lib/utils";
@@ -25,11 +27,12 @@ export function Navbar() {
   const router = useRouter();
   const cartCount = useCartStore((s) => s.totalItems());
   const wishlistCount = useWishlistStore((s) => s.productIds.length);
+  const savedRetailersCount = useSavedRetailersStore((s) => s.retailerIds.length);
   const user = useAuthStore((s) => s.user);
 
   return (
     <header className="sticky top-0 z-40 border-b border-cream-300 bg-white">
-      <div className="mx-auto flex h-[88px] max-w-[1440px] items-center justify-between gap-6 px-5 sm:px-10 lg:px-20">
+      <div className="mx-auto flex h-[108px] max-w-[1440px] items-center justify-between gap-6 px-5 sm:px-10 lg:px-20">
         <div className="flex items-center gap-6">
           <button
             type="button"
@@ -39,10 +42,8 @@ export function Navbar() {
           >
             {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-display text-[28px] font-semibold text-primary-600">Ilkal Threads</span>
-            <span className="hidden h-5 w-px bg-cream-300 sm:block" />
-            <span className="hidden text-[11px] font-medium uppercase text-gold-400 sm:block">Marketplace</span>
+          <Link href="/" className="flex items-center">
+            <Image src="/images/brand/kaushaya-logo.png" alt="Kaushaya" width={280} height={156} className="h-24 w-auto object-contain" priority />
           </Link>
         </div>
 
@@ -74,9 +75,9 @@ export function Navbar() {
         <div className="flex items-center gap-4 sm:gap-6">
           <Link href="/wishlist" aria-label="Wishlist" className="relative text-ink-900 hover:text-primary-600">
             <Heart className="size-5" />
-            {mounted && wishlistCount > 0 && (
+            {mounted && user && wishlistCount + savedRetailersCount > 0 && (
               <span className="absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-primary-600 text-[9px] font-bold text-white">
-                {wishlistCount}
+                {wishlistCount + savedRetailersCount}
               </span>
             )}
           </Link>
@@ -86,7 +87,7 @@ export function Navbar() {
             className="relative flex size-10 items-center justify-center rounded-pill bg-cream-100 text-ink-900 hover:text-primary-600"
           >
             <ShoppingBag className="size-[18px]" />
-            {mounted && cartCount > 0 && (
+            {mounted && user && cartCount > 0 && (
               <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-md bg-primary-600 text-[9px] font-bold text-white">
                 {cartCount}
               </span>

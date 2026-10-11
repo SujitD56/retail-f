@@ -24,7 +24,7 @@ export default function RetailerOnboardingPage() {
     <div className="min-h-screen bg-cream-100">
       <header className="flex h-[88px] items-center justify-between border-b border-cream-300 bg-white px-20">
         <div>
-          <p className="font-display text-2xl text-primary-600">Ilkal Threads</p>
+          <p className="font-display text-2xl text-primary-600">Kaushaya</p>
           <p className="text-[10px] uppercase tracking-wide text-ink-500">Retailer Onboarding</p>
         </div>
         <button type="button" className="text-sm font-medium text-ink-700">Save Draft &amp; Exit</button>

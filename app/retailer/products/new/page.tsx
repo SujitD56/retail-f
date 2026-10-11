@@ -29,14 +29,14 @@ export default function AddProductPage() {
     });
     toast({
       title: asDraft ? "Saved as draft" : "Product published",
-      description: asDraft ? "You can continue editing later." : "Now live on the Ilkal Threads marketplace.",
+      description: asDraft ? "You can continue editing later." : "Now live on the Kaushaya marketplace.",
       variant: "success",
     });
     router.push("/retailer/products");
   };
 
   return (
-    <RetailerShell title="Add New Product" subtitle="Introduce a new handcrafted masterwork to the Ilkal Threads marketplace.">
+    <RetailerShell title="Add New Product" subtitle="Introduce a new handcrafted masterwork to the Kaushaya marketplace.">
       <ProductForm submitLabel="Publish Live" submittingLabel="Publishing…" onSubmit={handleSubmit} />
     </RetailerShell>
   );

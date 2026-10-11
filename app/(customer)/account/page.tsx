@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Award, Bell, Settings as SettingsIcon, Star } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useOrdersStore } from "@/lib/store/orders";
 import { useWishlistStore } from "@/lib/store/wishlist";
 import { useSavedRetailersStore } from "@/lib/store/saved-retailers";
 import { api } from "@/lib/api/client";
-import { AccountSidebarNav, type AccountTab } from "@/components/customer/account/sidebar-nav";
+import { AccountSidebarNav, ACCOUNT_TABS, type AccountTab } from "@/components/customer/account/sidebar-nav";
 import { ProfilePanel } from "@/components/customer/account/profile-panel";
 import { OrdersPanel } from "@/components/customer/account/orders-panel";
 import { AccountPlaceholderPanel } from "@/components/customer/account/placeholder-panel";
@@ -22,8 +22,19 @@ import { useMounted } from "@/lib/hooks/use-mounted";
 import type { Order, Product, Retailer } from "@/types";
 
 export default function AccountPage() {
+  return (
+    <Suspense fallback={<Skeleton className="m-10 h-96" />}>
+      <AccountPageContent />
+    </Suspense>
+  );
+}
+
+function AccountPageContent() {
   const mounted = useMounted();
-  const [tab, setTab] = useState<AccountTab>("Profile");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab = (ACCOUNT_TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as AccountTab) : "Profile";
+  const [tab, setTab] = useState<AccountTab>(initialTab);
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -130,7 +141,7 @@ export default function AccountPage() {
               router.push("/");
             }}
           >
-            Sign out of Ilkal Threads
+            Sign out of Kaushaya
           </Button>
         </div>
       )}

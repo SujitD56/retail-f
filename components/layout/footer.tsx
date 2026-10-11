@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { FacebookGlyph, InstagramGlyph, TwitterGlyph, YoutubeGlyph } from "@/components/ui/social-glyphs";
 
@@ -57,7 +58,9 @@ export function Footer() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-16">
         <div className="flex flex-col justify-between gap-12 lg:flex-row">
           <div className="flex max-w-[340px] flex-col gap-5">
-            <p className="font-display text-[32px] font-semibold">Ilkal Threads</p>
+            <div className="w-fit rounded-md bg-cream-100 p-3">
+              <Image src="/images/brand/kaushaya-logo.png" alt="Kaushaya" width={280} height={156} className="h-24 w-auto object-contain" />
+            </div>
             <p className="text-sm leading-relaxed text-cream-400">
               Connecting customers with authentic, GI-verified handloom Ilkal saree retailers from Karnataka.
               Empowering weaver communities since 2026.
@@ -112,7 +115,7 @@ export function Footer() {
         <div className="h-px w-full bg-white/15" />
 
         <div className="flex flex-col items-center justify-between gap-3 text-xs text-white/60 sm:flex-row">
-          <p>© 2026 Ilkal Threads. All rights reserved. Handcrafted with love in Karnataka, India.</p>
+          <p>© 2026 Kaushaya. All rights reserved. Handcrafted with love in Karnataka, India.</p>
           <div className="flex items-center gap-6">
             <Link href="#" className="hover:text-white">
               Privacy Policy

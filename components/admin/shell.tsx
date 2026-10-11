@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Bell,
@@ -48,9 +49,9 @@ export function AdminShell({ title, subtitle, children }: { title: string; subti
     <>
       <div className="flex flex-col gap-1 p-5 pt-6">
         <div className="flex items-center justify-between px-1 pb-5">
-          <div>
-            <p className="font-display text-2xl font-bold text-primary-600">Ilkal Threads</p>
-            <p className="mt-1 flex items-center gap-2 text-xs text-ink-500">
+          <div className="flex flex-col gap-1.5">
+            <Image src="/images/brand/kaushaya-logo-sm.png" alt="Kaushaya" width={160} height={90} className="h-14 w-auto object-contain" />
+            <p className="flex items-center gap-2 text-xs text-ink-500">
               Platform Admin <span className="h-3 w-px bg-cream-300" /> v3.2 Stable
             </p>
           </div>

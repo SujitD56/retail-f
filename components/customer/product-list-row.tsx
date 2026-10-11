@@ -9,12 +9,14 @@ import { PriceTag } from "@/components/ui/price-tag";
 import { Badge } from "@/components/ui/badge";
 import { useWishlistStore } from "@/lib/store/wishlist";
 import { useMounted } from "@/lib/hooks/use-mounted";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { cn } from "@/lib/utils";
 
 export function ProductListRow({ product, retailerName }: { product: Product; retailerName?: string }) {
   const mounted = useMounted();
   const inWishlist = useWishlistStore((s) => s.has(product.id)) && mounted;
   const toggle = useWishlistStore((s) => s.toggle);
+  const requireAuth = useRequireAuth();
 
   return (
     <Link
@@ -40,7 +42,7 @@ export function ProductListRow({ product, retailerName }: { product: Product; re
             aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
             onClick={(e) => {
               e.preventDefault();
-              toggle(product.id);
+              requireAuth(() => toggle(product.id));
             }}
           >
             <Heart className={cn("size-5", inWishlist ? "fill-primary-600 text-primary-600" : "text-ink-500")} />

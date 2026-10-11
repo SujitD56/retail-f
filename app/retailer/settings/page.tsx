@@ -62,7 +62,7 @@ export default function RetailerSettingsPage() {
           </div>
           <div className="mt-5">
             <Label htmlFor="slug">Artisan Page Slug</Label>
-            <Input id="slug" defaultValue="ilkalthreads.com/boutique/lakshmi-handlooms" />
+            <Input id="slug" defaultValue="kaushaya.com/boutique/lakshmi-handlooms" />
           </div>
         </section>
 

@@ -27,6 +27,7 @@ export function FiltersSidebar({
   retailers,
   categoryCounts,
   hideCategory = false,
+  hideRetailer = false,
   mobileOpen = false,
   onMobileClose,
 }: {
@@ -36,6 +37,8 @@ export function FiltersSidebar({
   categoryCounts: Record<string, number>;
   /** Collection-scoped listings hide the category group — the collection itself is the category. */
   hideCategory?: boolean;
+  /** Hidden when the listing is already scoped to one retailer — filtering by retailer is redundant there. */
+  hideRetailer?: boolean;
   /** Below lg, the sidebar renders as an off-canvas drawer controlled by the parent's "Filters" button. */
   mobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -138,26 +141,28 @@ export function FiltersSidebar({
         </div>
       </FilterGroup>
 
-      <FilterGroup title="Retailer">
-        <div className="flex flex-col gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-3 -translate-y-1/2 text-ink-500" />
-            <input
-              value={retailerSearch}
-              onChange={(e) => setRetailerSearch(e.target.value)}
-              placeholder="Search retailers..."
-              className="h-8 w-full rounded-sm border border-cream-300 bg-cream-100 pl-8 pr-2 text-xs text-ink-900 placeholder:text-ink-500 focus:outline-none"
-            />
+      {!hideRetailer && (
+        <FilterGroup title="Retailer">
+          <div className="flex flex-col gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 size-3 -translate-y-1/2 text-ink-500" />
+              <input
+                value={retailerSearch}
+                onChange={(e) => setRetailerSearch(e.target.value)}
+                placeholder="Search retailers..."
+                className="h-8 w-full rounded-sm border border-cream-300 bg-cream-100 pl-8 pr-2 text-xs text-ink-900 placeholder:text-ink-500 focus:outline-none"
+              />
+            </div>
+            {visibleRetailers.length === 0 && <p className="text-xs text-ink-500">No retailers match &ldquo;{retailerSearch}&rdquo;.</p>}
+            {visibleRetailers.map((r) => (
+              <label key={r.id} className="flex items-center gap-2.5 text-sm text-ink-900">
+                <Checkbox checked={filters.retailerIds.includes(r.id)} onCheckedChange={() => onChange({ ...filters, retailerIds: toggle(filters.retailerIds, r.id) })} />
+                {r.name}
+              </label>
+            ))}
           </div>
-          {visibleRetailers.length === 0 && <p className="text-xs text-ink-500">No retailers match &ldquo;{retailerSearch}&rdquo;.</p>}
-          {visibleRetailers.map((r) => (
-            <label key={r.id} className="flex items-center gap-2.5 text-sm text-ink-900">
-              <Checkbox checked={filters.retailerIds.includes(r.id)} onCheckedChange={() => onChange({ ...filters, retailerIds: toggle(filters.retailerIds, r.id) })} />
-              {r.name}
-            </label>
-          ))}
-        </div>
-      </FilterGroup>
+        </FilterGroup>
+      )}
 
       <FilterGroup title="Rating">
         <div className="flex flex-col gap-3">

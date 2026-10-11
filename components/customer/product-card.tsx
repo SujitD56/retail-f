@@ -9,12 +9,14 @@ import { PriceTag } from "@/components/ui/price-tag";
 import { Badge } from "@/components/ui/badge";
 import { useWishlistStore } from "@/lib/store/wishlist";
 import { useMounted } from "@/lib/hooks/use-mounted";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { cn } from "@/lib/utils";
 
-export function ProductCard({ product, retailerName }: { product: Product; retailerName?: string }) {
+export function ProductCard({ product, retailerName, priority }: { product: Product; retailerName?: string; priority?: boolean }) {
   const mounted = useMounted();
   const inWishlist = useWishlistStore((s) => s.has(product.id)) && mounted;
   const toggle = useWishlistStore((s) => s.toggle);
+  const requireAuth = useRequireAuth();
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-lg border border-cream-300 bg-white pb-5">
@@ -24,6 +26,7 @@ export function ProductCard({ product, retailerName }: { product: Product; retai
           alt={product.images[0]!.alt}
           fill
           sizes="(min-width: 1024px) 23vw, (min-width: 640px) 45vw, 90vw"
+          priority={priority}
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {product.compareAtPrice && (
@@ -36,7 +39,7 @@ export function ProductCard({ product, retailerName }: { product: Product; retai
           aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
           onClick={(e) => {
             e.preventDefault();
-            toggle(product.id);
+            requireAuth(() => toggle(product.id));
           }}
           className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.1)]"
         >

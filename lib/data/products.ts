@@ -3,7 +3,7 @@ import type { Product } from "@/types";
 
 // Real API-backed repository — same exported signatures/shapes the mock
 // version had (see git history), so no importer had to change. Bodies now
-// call the Ilkal Threads API (see server/) instead of reading local arrays.
+// call the Kaushaya API (see server/) instead of reading local arrays.
 
 export async function getProducts(filters?: { weaveType?: string; retailerId?: string; tag?: string }) {
   const params = new URLSearchParams();

@@ -15,7 +15,7 @@ export default function RetailerRegistrationSubmittedPage() {
       icon={CheckCircle2}
       iconClassName="bg-success-50 text-success-500"
       title="Registration Submitted!"
-      description="Thank you for registering with Ilkal Threads."
+      description="Thank you for registering with Kaushaya."
     >
       <div className="rounded-lg bg-cream-100 p-5 text-sm text-ink-700">
         <p>

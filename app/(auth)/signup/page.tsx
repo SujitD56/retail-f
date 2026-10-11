@@ -5,12 +5,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Phone } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { AuthSplitCard } from "@/components/customer/auth-split-card";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { FormCheckbox } from "@/components/ui/form-checkbox";
-import { GoogleGlyph } from "@/components/ui/social-glyphs";
 import { signupSchema, type SignupValues } from "@/lib/validations/auth";
 import { useAuthStore } from "@/lib/store/auth";
 import { useCartStore } from "@/lib/store/cart";
@@ -43,19 +42,20 @@ export default function SignupPage() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<SignupValues>({ resolver: zodResolver(signupSchema) });
+  } = useForm<SignupValues>({ resolver: zodResolver(signupSchema), defaultValues: { agreeToTerms: false } });
 
   const strength = passwordStrength(password);
 
   const onSubmit = async (values: SignupValues) => {
     try {
-      await signup(values.fullName, values.email, values.password);
+      await signup(values.fullName, values.email, values.password, values.phone);
       await Promise.all([useCartStore.getState().syncToServer(), useWishlistStore.getState().syncToServer()]);
-      toast({ title: "Account created", description: `Welcome to Ilkal Threads, ${values.fullName.split(" ")[0]}!`, variant: "success" });
-      router.push("/account");
+      toast({ title: "Account created", description: `Welcome to Kaushaya, ${values.fullName.split(" ")[0]}!`, variant: "success" });
+      router.push("/");
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setError("email", { message: "An account with this email already exists" });
+        if (err.message.includes("phone")) setError("phone", { message: err.message });
+        else setError("email", { message: err.message });
       } else {
         toast({ title: "Couldn't create your account — try again", variant: "error" });
       }
@@ -70,7 +70,7 @@ export default function SignupPage() {
       description="By bypassing middlemen, we ensure that local weaver households earn stable livelihood wages."
     >
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-[32px] text-primary-600">Join Ilkal Threads</h1>
+        <h1 className="font-display text-[32px] text-primary-600">Join Kaushaya</h1>
         <p className="text-[13px] text-ink-700">Discover authentic Ilkal sarees from trusted retailers</p>
       </div>
 
@@ -91,7 +91,7 @@ export default function SignupPage() {
           <Label htmlFor="phone" className="text-xs">
             Phone Number
           </Label>
-          <Input id="phone" type="tel" placeholder="+91 98765 43210" />
+          <Input id="phone" type="tel" placeholder="+91 98765 43210" error={errors.phone?.message} {...register("phone")} />
         </div>
         <div>
           <Label htmlFor="password" className="text-xs">
@@ -139,20 +139,9 @@ export default function SignupPage() {
           {isSubmitting ? "Creating account…" : "Create Account"}
         </Button>
 
-        <div className="flex items-center gap-4">
-          <span className="h-px flex-1 bg-cream-300" />
-          <span className="text-[11px] uppercase text-ink-500">or sign up with</span>
-          <span className="h-px flex-1 bg-cream-300" />
-        </div>
-
-        <div className="flex gap-3">
-          <Button type="button" variant="secondary" size="sm" className="flex-1">
-            <GoogleGlyph className="size-4" /> Google
-          </Button>
-          <Button type="button" variant="secondary" size="sm" className="flex-1">
-            <Phone className="size-4" /> OTP
-          </Button>
-        </div>
+        {/* Google sign-up and Phone OTP are disabled until a real OAuth app
+            and SMS provider are wired up on the backend — these buttons had
+            no handler at all and silently did nothing. */}
       </form>
 
       <div className="flex flex-col items-center gap-2 text-[13px]">

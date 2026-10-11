@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
   const { data: stats } = useApiQuery<AdminStats>("/admin/stats");
 
   return (
-    <AdminShell title="Ilkal Threads Admin" subtitle="Central administrative workspace for the handloom weaver platform.">
+    <AdminShell title="Kaushaya Admin" subtitle="Central administrative workspace for the handloom weaver platform.">
       <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
         {overview ? (
           overview.items.map((s) => (

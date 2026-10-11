@@ -4,7 +4,7 @@ export const regStep1Schema = z
   .object({
     fullName: z.string().min(2, "Enter your full name"),
     email: z.string().min(1, "Required").email("Enter a valid email"),
-    mobile: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit mobile number"),
+    mobile: z.string().refine((v) => /^(?:\+?91|0)?[6-9]\d{9}$/.test(v.replace(/[\s-]/g, "")), "Enter a valid 10-digit mobile number"),
     password: z.string().min(8, "At least 8 characters"),
     confirmPassword: z.string().min(1, "Required"),
     agreeToTerms: z.boolean().refine((v) => v, "You must accept the Seller Agreement"),

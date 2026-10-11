@@ -41,16 +41,44 @@ export default function RetailerRegisterPage() {
   const [step, setStep] = useState(1);
   const [documentUrls, setDocumentUrls] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
-  const step1 = useForm<RegStep1Values>({ resolver: zodResolver(regStep1Schema) });
+  const step1 = useForm<RegStep1Values>({ resolver: zodResolver(regStep1Schema), defaultValues: { agreeToTerms: false } });
   const step2 = useForm<RegStep2Values>({ resolver: zodResolver(regStep2Schema) });
   const step3 = useForm<RegStep3Values>({ resolver: zodResolver(regStep3Schema) });
   const step5 = useForm<RegStep5Values>({ resolver: zodResolver(regStep5Schema), defaultValues: { accountType: "savings" } });
 
   const meta = STEP_META[step - 1]!;
   const progress = (step / 5) * 100;
+
+  const continueFromStep1 = async (values: RegStep1Values) => {
+    setCheckingEmail(true);
+    try {
+      const [{ available: emailAvailable }, { available: phoneAvailable }] = await Promise.all([
+        api.get<{ available: boolean }>(`/auth/check-email?email=${encodeURIComponent(values.email)}`),
+        api.get<{ available: boolean }>(`/auth/check-phone?phone=${encodeURIComponent(values.mobile)}`),
+      ]);
+      let blocked = false;
+      if (!emailAvailable) {
+        step1.setError("email", { message: "An account with this email already exists" });
+        blocked = true;
+      }
+      if (!phoneAvailable) {
+        step1.setError("mobile", { message: "An account with this phone number already exists" });
+        blocked = true;
+      }
+      if (!blocked) setStep(2);
+    } catch {
+      // Availability check failed (e.g. transient network hiccup) — don't
+      // block registration over it; the final submit still catches a real
+      // duplicate email/phone via the same CONFLICT check the backend always runs.
+      setStep(2);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
 
   const submitRegistration = async (values5: RegStep5Values) => {
     setSubmitting(true);
@@ -118,7 +146,7 @@ export default function RetailerRegisterPage() {
         </div>
 
         {step === 1 && (
-          <form onSubmit={step1.handleSubmit(() => setStep(2))} className="flex flex-col gap-5">
+          <form onSubmit={step1.handleSubmit(continueFromStep1)} className="flex flex-col gap-5">
             <div>
               <Label htmlFor="fullName" required>Full Name</Label>
               <Input id="fullName" icon={<User className="size-[18px]" />} error={step1.formState.errors.fullName?.message} {...step1.register("fullName")} />
@@ -141,10 +169,10 @@ export default function RetailerRegisterPage() {
             </div>
             <label className="flex items-start gap-2.5 text-sm text-ink-700">
               <FormCheckbox control={step1.control} name="agreeToTerms" className="mt-0.5" />
-              I agree to the Terms of Service and Seller Agreement of Ilkal Threads Portal.
+              I agree to the Terms of Service and Seller Agreement of Kaushaya Portal.
             </label>
             {step1.formState.errors.agreeToTerms && <p className="text-xs text-danger-500">{step1.formState.errors.agreeToTerms.message}</p>}
-            <Button type="submit" size="lg" className="h-12 w-full">Continue →</Button>
+            <Button type="submit" size="lg" disabled={checkingEmail} className="h-12 w-full">{checkingEmail ? "Checking…" : "Continue →"}</Button>
             <p className="text-center text-sm text-ink-700">
               Already have an account? <Link href="/retailer/login" className="font-semibold text-primary-600">Sign In</Link>
             </p>

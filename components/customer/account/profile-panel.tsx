@@ -1,7 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { User } from "@/types";
 import type { Order } from "@/types";
 import { StatusPill } from "@/components/ui/status-pill";
+import { EditProfileDialog } from "@/components/customer/account/edit-profile-dialog";
 import { formatDate, formatINR } from "@/lib/utils";
 
 function initials(name: string) {
@@ -27,6 +31,7 @@ export function ProfilePanel({
   recentOrders: Order[];
 }) {
   const firstName = user.name.split(" ")[0];
+  const [editOpen, setEditOpen] = useState(false);
 
   return (
     <div className="flex flex-1 flex-col gap-8">
@@ -42,7 +47,11 @@ export function ProfilePanel({
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex items-center justify-between">
             <p className="font-display text-2xl text-ink-900">{user.name}</p>
-            <button type="button" className="rounded-sm border border-cream-300 px-4 py-2 text-sm font-medium text-ink-900 hover:bg-cream-100">
+            <button
+              type="button"
+              onClick={() => setEditOpen(true)}
+              className="rounded-sm border border-cream-300 px-4 py-2 text-sm font-medium text-ink-900 hover:bg-cream-100"
+            >
               Edit Profile
             </button>
           </div>
@@ -53,15 +62,16 @@ export function ProfilePanel({
             </div>
             <div>
               <p className="text-xs text-ink-500">Phone</p>
-              <p className="text-sm text-ink-900">+91 98765 43210</p>
+              <p className="text-sm text-ink-900">{user.phone || "—"}</p>
             </div>
             <div>
               <p className="text-xs text-ink-500">Member Since</p>
-              <p className="text-sm text-ink-900">August 2025</p>
+              <p className="text-sm text-ink-900">{formatDate(user.memberSince)}</p>
             </div>
           </div>
         </div>
       </div>
+      <EditProfileDialog open={editOpen} onOpenChange={setEditOpen} user={user} />
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         <StatCard label="Orders Placed" value={ordersCount} note={recentOrders[0] ? `Last ordered ${formatDate(recentOrders[0].placedAt)}` : "No orders yet"} />

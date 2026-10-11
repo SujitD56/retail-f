@@ -21,7 +21,7 @@ export default function RetailerJoinLandingPage() {
     <div className="bg-cream-100">
       <header className="flex h-[88px] items-center justify-between border-b border-cream-300 bg-white px-20">
         <div>
-          <p className="font-display text-2xl text-primary-600">Ilkal Threads</p>
+          <p className="font-display text-2xl text-primary-600">Kaushaya</p>
           <p className="text-[10px] uppercase tracking-wide text-gold-400">Weaver Marketplace</p>
         </div>
         <nav className="hidden gap-8 text-sm font-medium text-ink-900 md:flex">
@@ -63,7 +63,7 @@ export default function RetailerJoinLandingPage() {
 
           <div className="rounded-lg border border-cream-300 bg-white p-6">
             <p className="italic leading-relaxed text-ink-700">
-              &ldquo;Transitioning to Ilkal Threads allowed our weaving cooperative to reach markets in Mumbai and
+              &ldquo;Transitioning to Kaushaya allowed our weaving cooperative to reach markets in Mumbai and
               Delhi we never had access to. Our looms run full-time now.&rdquo;
             </p>
             <div className="mt-4 flex items-center gap-3">
@@ -132,7 +132,7 @@ export default function RetailerJoinLandingPage() {
       <footer className="border-t border-cream-300 bg-white px-20 py-16">
         <div className="flex flex-col justify-between gap-10 lg:flex-row">
           <div className="max-w-sm">
-            <p className="font-display text-2xl text-primary-600">Ilkal Threads</p>
+            <p className="font-display text-2xl text-primary-600">Kaushaya</p>
             <p className="mt-4 text-sm leading-relaxed text-ink-700">
               Preserving and promoting the legendary craft of Ilkal weaving. Empowering weavers and weavers&apos;
               cooperatives through digital commerce.
@@ -154,7 +154,7 @@ export default function RetailerJoinLandingPage() {
           </div>
         </div>
         <div className="mt-10 flex items-center justify-between border-t border-cream-300 pt-6 text-xs text-ink-500">
-          <span>© 2026 Ilkal Threads. All rights reserved. Handloom Mark Certified.</span>
+          <span>© 2026 Kaushaya. All rights reserved. Handloom Mark Certified.</span>
           <div className="flex gap-6">
             <span>Instagram</span>
             <span>Facebook</span>

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Lock, Truck } from "lucide-react";
+import { Lock } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
 import { useBuyNowStore } from "@/lib/store/buy-now";
 import { useOrdersStore } from "@/lib/store/orders";
@@ -51,27 +51,32 @@ function CheckoutPageContent() {
   const [address, setAddress] = useState<AddressValues | null>(null);
   const [delivery, setDelivery] = useState<"standard" | "express">("standard");
   const [payment, setPayment] = useState<"upi" | "card" | "netbanking">("upi");
-  const [card, setCard] = useState({ number: "", expiry: "", cvv: "", name: "" });
   const [placing, setPlacing] = useState(false);
-  const [guestEmail, setGuestEmail] = useState("");
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
   const [billingAddress, setBillingAddress] = useState<AddressValues | null>(null);
+  const [useNewAddress, setUseNewAddress] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const cartItems = useCartStore((s) => s.items);
-  const clearCart = useCartStore((s) => s.clear);
   const buyNowItem = useBuyNowStore((s) => s.item);
   const clearBuyNow = useBuyNowStore((s) => s.clear);
   const placeOrder = useOrdersStore((s) => s.placeOrder);
+  const savedAddresses = useAddressesStore((s) => s.addresses);
   const saveAddress = useAddressesStore((s) => s.add);
   const user = useAuthStore((s) => s.user);
 
   // Buy Now checks out only the single product selected on the PDP,
-  // bypassing whatever else is already sitting in the cart.
+  // bypassing whatever else is already sitting in the cart. Short of that,
+  // `items=` (set by the cart page's per-item checkboxes) narrows checkout
+  // to just the cart items the customer actually selected.
   const isBuyNow = searchParams.get("buyNow") === "1" && Boolean(buyNowItem);
-  const items = useMemo(() => (isBuyNow && buyNowItem ? [buyNowItem] : cartItems), [isBuyNow, buyNowItem, cartItems]);
+  const selectedIds = searchParams.get("items")?.split(",").filter(Boolean);
+  const items = useMemo(
+    () => (isBuyNow && buyNowItem ? [buyNowItem] : selectedIds ? cartItems.filter((i) => selectedIds.includes(i.productId)) : cartItems),
+    [isBuyNow, buyNowItem, cartItems, selectedIds],
+  );
 
   const [products, setProducts] = useState<Product[] | null>(null);
   const [retailers, setRetailers] = useState<Retailer[]>([]);
@@ -121,7 +126,7 @@ function CheckoutPageContent() {
     );
   }
 
-  if (resolvedItems.length === 0) {
+  if (resolvedItems.length === 0 && !placing) {
     return (
       <div className="flex flex-col gap-8 px-5 py-16 sm:px-10 lg:px-20">
         <h1 className="font-display text-4xl text-primary-600">Checkout</h1>
@@ -130,12 +135,24 @@ function CheckoutPageContent() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex flex-col gap-8 px-5 py-16 sm:px-10 lg:px-20">
+        <h1 className="font-display text-4xl text-primary-600">Checkout</h1>
+        <EmptyState
+          icon={Lock}
+          title="Sign in to check out"
+          description="Create an account or sign in so we can save your order and keep you updated on delivery."
+          actionLabel="Sign In"
+          actionHref="/login"
+          className="mx-auto max-w-md"
+        />
+      </div>
+    );
+  }
+
   const handlePlaceOrder = async () => {
     if (!address) return;
-    if (!user && !guestEmail) {
-      toast({ title: "Enter an email to receive your order confirmation", variant: "error" });
-      return;
-    }
     setPlacing(true);
     try {
       const { order, payment: paymentSession } = await placeOrder({
@@ -143,16 +160,13 @@ function CheckoutPageContent() {
         shippingAddress: address,
         deliveryMethod: delivery,
         paymentMethod: payment,
-        guestEmail: user ? undefined : guestEmail,
       });
-      // The order exists in the DB either way from this point on — clear
-      // the cart regardless of what happens with the payment widget below,
-      // same as COD already does. A customer who backs out of paying
-      // retries from the order page, not by re-running checkout.
+      // Cart items are left alone here on purpose — whether the payment
+      // that follows succeeds or fails, the customer's cart stays exactly
+      // as it was. Buy Now is a separate, single-item staging area (not
+      // "the cart"), so it still clears once the order's placed.
       if (isBuyNow) {
         clearBuyNow();
-      } else {
-        clearCart();
       }
       saveAddress(address);
 
@@ -160,9 +174,9 @@ function CheckoutPageContent() {
         const paid = await payForOrder({
           orderNumber: order.id,
           session: paymentSession,
-          name: "Ilkal Threads",
+          name: "Kaushaya",
           description: `Order ${order.id}`,
-          prefill: { name: address.fullName, email: user?.email ?? guestEmail, contact: address.phone },
+          prefill: { name: address.fullName, email: user.email, contact: address.phone },
         });
         if (!paid) {
           toast({
@@ -187,50 +201,166 @@ function CheckoutPageContent() {
         <Stepper steps={STEPS} current={step} />
 
         {step === 1 && (
-          <form
-            onSubmit={handleSubmit((values) => {
-              setAddress(values);
-              setStep(2);
-            })}
-            className="flex flex-col gap-4 rounded-lg border border-cream-300 bg-white p-8"
-          >
+          <div className="flex flex-col gap-4 rounded-lg border border-cream-300 bg-white p-8">
             <h2 className="font-display text-2xl text-primary-600">Shipping Address</h2>
-            {!user && (
-              <div>
-                <Label htmlFor="guestEmail" required>Email (for order updates)</Label>
-                <Input id="guestEmail" type="email" placeholder="you@example.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} />
+
+            {savedAddresses.length > 0 && !useNewAddress && (
+              <div className="flex flex-col gap-3">
+                {savedAddresses.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => {
+                      setAddress(a);
+                      setStep(2);
+                    }}
+                    className={cn(
+                      "flex flex-col gap-1 rounded-md border p-4 text-left",
+                      a.isDefault ? "border-primary-600 bg-primary-50" : "border-cream-300",
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-ink-900">{a.fullName}</p>
+                      {a.isDefault && (
+                        <span className="rounded-pill bg-primary-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">Default</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-ink-700">
+                      {a.line1}, {a.city}, {a.state} {a.postalCode}
+                    </p>
+                    <p className="text-sm text-ink-700">{a.phone}</p>
+                  </button>
+                ))}
+                <button type="button" onClick={() => setUseNewAddress(true)} className="w-fit text-sm font-semibold text-primary-600">
+                  + Use a new address
+                </button>
               </div>
             )}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Label htmlFor="fullName" required>Full Name</Label>
-                <Input id="fullName" placeholder="Priya Sharma" error={errors.fullName?.message} {...register("fullName")} />
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="line1" required>Address</Label>
-                <Textarea id="line1" placeholder="42 MG Road" error={errors.line1?.message} {...register("line1")} />
-              </div>
-              <div>
-                <Label htmlFor="city" required>City</Label>
-                <Input id="city" placeholder="Bangalore" error={errors.city?.message} {...register("city")} />
-              </div>
-              <div>
-                <Label htmlFor="state" required>State</Label>
-                <Input id="state" placeholder="Karnataka" error={errors.state?.message} {...register("state")} />
-              </div>
-              <div>
-                <Label htmlFor="postalCode" required>PIN Code</Label>
-                <Input id="postalCode" placeholder="560001" error={errors.postalCode?.message} {...register("postalCode")} />
-              </div>
-              <div>
-                <Label htmlFor="phone" required>Phone</Label>
-                <Input id="phone" placeholder="+91 98765 43210" error={errors.phone?.message} {...register("phone")} />
-              </div>
-            </div>
-            <Button type="submit" size="lg" className="mt-2 w-fit">
-              Continue to Delivery
-            </Button>
-          </form>
+
+            {(savedAddresses.length === 0 || useNewAddress) && (
+              <form
+                onSubmit={handleSubmit((values) => {
+                  if (!billingSameAsShipping) {
+                    const parsed = addressSchema.safeParse(billingAddress);
+                    if (!parsed.success) {
+                      toast({ title: "Fill in a complete billing address", variant: "error" });
+                      return;
+                    }
+                  }
+                  setAddress(values);
+                  setStep(2);
+                })}
+                className="flex flex-col gap-4"
+              >
+                {savedAddresses.length > 0 && (
+                  <button type="button" onClick={() => setUseNewAddress(false)} className="w-fit text-sm font-semibold text-primary-600">
+                    ← Use a saved address
+                  </button>
+                )}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="fullName" required>Full Name</Label>
+                    <Input id="fullName" placeholder="Priya Sharma" error={errors.fullName?.message} {...register("fullName")} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="line1" required>Address</Label>
+                    <Textarea id="line1" placeholder="42 MG Road" error={errors.line1?.message} {...register("line1")} />
+                  </div>
+                  <div>
+                    <Label htmlFor="city" required>City</Label>
+                    <Input id="city" placeholder="Bangalore" error={errors.city?.message} {...register("city")} />
+                  </div>
+                  <div>
+                    <Label htmlFor="state" required>State</Label>
+                    <Input id="state" placeholder="Karnataka" error={errors.state?.message} {...register("state")} />
+                  </div>
+                  <div>
+                    <Label htmlFor="postalCode" required>PIN Code</Label>
+                    <Input id="postalCode" placeholder="560001" error={errors.postalCode?.message} {...register("postalCode")} />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone" required>Phone</Label>
+                    <Input id="phone" placeholder="+91 98765 43210" error={errors.phone?.message} {...register("phone")} />
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 text-sm text-ink-700">
+                  <input
+                    type="checkbox"
+                    checked={billingSameAsShipping}
+                    onChange={(e) => setBillingSameAsShipping(e.target.checked)}
+                    className="size-4 accent-primary-600"
+                  />
+                  Billing address is same as shipping address
+                </label>
+                {!billingSameAsShipping && (
+                  <div className="flex flex-col gap-4 rounded-md border border-cream-300 p-5">
+                    <h3 className="text-sm font-semibold text-ink-900">Billing Address</h3>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="billFullName" required>Full Name</Label>
+                        <Input
+                          id="billFullName"
+                          placeholder="Priya Sharma"
+                          value={billingAddress?.fullName ?? ""}
+                          onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), fullName: e.target.value })}
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="billLine1" required>Address</Label>
+                        <Textarea
+                          id="billLine1"
+                          placeholder="42 MG Road"
+                          value={billingAddress?.line1 ?? ""}
+                          onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), line1: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="billCity" required>City</Label>
+                        <Input
+                          id="billCity"
+                          placeholder="Bangalore"
+                          value={billingAddress?.city ?? ""}
+                          onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), city: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="billState" required>State</Label>
+                        <Input
+                          id="billState"
+                          placeholder="Karnataka"
+                          value={billingAddress?.state ?? ""}
+                          onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), state: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="billPostalCode" required>PIN Code</Label>
+                        <Input
+                          id="billPostalCode"
+                          placeholder="560001"
+                          value={billingAddress?.postalCode ?? ""}
+                          onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), postalCode: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="billPhone" required>Phone</Label>
+                        <Input
+                          id="billPhone"
+                          placeholder="+91 98765 43210"
+                          value={billingAddress?.phone ?? ""}
+                          onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), phone: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button type="submit" size="lg" className="mt-2 w-fit">
+                  Continue to Delivery
+                </Button>
+              </form>
+            )}
+          </div>
         )}
 
         {step === 2 && (
@@ -268,125 +398,29 @@ function CheckoutPageContent() {
               <h2 className="font-display text-2xl text-primary-600">Select Payment Method</h2>
             </div>
             <div className="flex flex-wrap gap-6">
-              {(["upi", "card", "netbanking"] as const).map((method) => (
-                <label key={method} className="flex items-center gap-2.5">
-                  <input type="radio" checked={payment === method} onChange={() => setPayment(method)} className="size-4 accent-primary-600" />
-                  <span className="text-sm text-ink-900">
-                    {method === "upi" ? "UPI (GPay, PhonePe)" : method === "card" ? "Credit / Debit Card" : "Net Banking"}
-                  </span>
-                </label>
-              ))}
+              {(["upi", "card", "netbanking"] as const).map((method) => {
+                const disabled = method !== "upi";
+                return (
+                  <label key={method} className={cn("flex items-center gap-2.5", disabled && "cursor-not-allowed opacity-40")}>
+                    <input
+                      type="radio"
+                      checked={payment === method}
+                      disabled={disabled}
+                      onChange={() => setPayment(method)}
+                      className="size-4 accent-primary-600"
+                    />
+                    <span className="text-sm text-ink-900">
+                      {method === "upi" ? "UPI (GPay, PhonePe)" : method === "card" ? "Credit / Debit Card (coming soon)" : "Net Banking (coming soon)"}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
-            {payment === "card" && (
-              <div className="flex flex-col gap-4">
-                <div>
-                  <Label htmlFor="cardNumber">Card Number</Label>
-                  <Input id="cardNumber" placeholder="4111 •••• •••• 8847" value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value })} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="cardExpiry">Expiry Date</Label>
-                    <Input id="cardExpiry" placeholder="MM / YY" value={card.expiry} onChange={(e) => setCard({ ...card, expiry: e.target.value })} />
-                  </div>
-                  <div>
-                    <Label htmlFor="cardCvv">CVV</Label>
-                    <Input id="cardCvv" placeholder="•••" value={card.cvv} onChange={(e) => setCard({ ...card, cvv: e.target.value })} />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="cardName">Name on Card</Label>
-                  <Input id="cardName" placeholder="Priya Sharma" value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} />
-                </div>
-              </div>
-            )}
-            <label className="flex items-center gap-2 text-sm text-ink-700">
-              <input
-                type="checkbox"
-                checked={billingSameAsShipping}
-                onChange={(e) => setBillingSameAsShipping(e.target.checked)}
-                className="size-4 accent-primary-600"
-              />
-              Billing address is same as shipping address
-            </label>
-            {!billingSameAsShipping && (
-              <div className="flex flex-col gap-4 rounded-md border border-cream-300 p-5">
-                <h3 className="text-sm font-semibold text-ink-900">Billing Address</h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <Label htmlFor="billFullName" required>Full Name</Label>
-                    <Input
-                      id="billFullName"
-                      placeholder="Priya Sharma"
-                      value={billingAddress?.fullName ?? ""}
-                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), fullName: e.target.value })}
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Label htmlFor="billLine1" required>Address</Label>
-                    <Textarea
-                      id="billLine1"
-                      placeholder="42 MG Road"
-                      value={billingAddress?.line1 ?? ""}
-                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), line1: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="billCity" required>City</Label>
-                    <Input
-                      id="billCity"
-                      placeholder="Bangalore"
-                      value={billingAddress?.city ?? ""}
-                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), city: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="billState" required>State</Label>
-                    <Input
-                      id="billState"
-                      placeholder="Karnataka"
-                      value={billingAddress?.state ?? ""}
-                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), state: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="billPostalCode" required>PIN Code</Label>
-                    <Input
-                      id="billPostalCode"
-                      placeholder="560001"
-                      value={billingAddress?.postalCode ?? ""}
-                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), postalCode: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="billPhone" required>Phone</Label>
-                    <Input
-                      id="billPhone"
-                      placeholder="+91 98765 43210"
-                      value={billingAddress?.phone ?? ""}
-                      onChange={(e) => setBillingAddress({ ...(billingAddress ?? emptyAddress), phone: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
             <div className="flex gap-3">
               <Button variant="secondary" onClick={() => setStep(2)}>
                 Back
               </Button>
-              <Button
-                onClick={() => {
-                  if (!billingSameAsShipping) {
-                    const parsed = addressSchema.safeParse(billingAddress);
-                    if (!parsed.success) {
-                      toast({ title: "Fill in a complete billing address", variant: "error" });
-                      return;
-                    }
-                  }
-                  setStep(4);
-                }}
-              >
-                Continue to Review
-              </Button>
+              <Button onClick={() => setStep(4)}>Continue to Review</Button>
             </div>
           </div>
         )}
@@ -435,9 +469,6 @@ function CheckoutPageContent() {
         </div>
         <div className="flex items-center justify-center gap-2 pt-2 text-xs text-ink-700">
           <Lock className="size-3.5" /> 100% Encrypted Safe Checkout
-        </div>
-        <div className="flex items-center gap-2 text-xs text-ink-500">
-          <Truck className="size-3.5" /> Estimated delivery in {delivery === "express" ? "2-3" : "5-7"} business days
         </div>
       </aside>
     </div>

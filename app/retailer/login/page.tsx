@@ -74,7 +74,7 @@ function RetailerLoginForm() {
             <Label htmlFor="email" required>
               Registered Email or Mobile
             </Label>
-            <Input id="email" placeholder="e.g. seller@ilkalthreads.com" icon={<Mail className="size-[18px]" />} error={errors.email?.message} {...register("email")} />
+            <Input id="email" placeholder="e.g. seller@kaushaya.com" icon={<Mail className="size-[18px]" />} error={errors.email?.message} {...register("email")} />
           </div>
           <div>
             <Label htmlFor="password" required>
@@ -119,7 +119,7 @@ function RetailerLoginForm() {
         </form>
 
         <p className="text-sm text-ink-700">
-          New to Ilkal Threads?{" "}
+          New to Kaushaya?{" "}
           <Link href="/retailer/register" className="font-semibold text-primary-600">
             Create Retailer Account →
           </Link>

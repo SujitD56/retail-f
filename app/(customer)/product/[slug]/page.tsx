@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Truck } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { StarRating } from "@/components/ui/star-rating";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +7,7 @@ import { ProductGallery } from "@/components/customer/pdp/product-gallery";
 import { PurchasePanel } from "@/components/customer/pdp/purchase-panel";
 import { RetailerMiniCard } from "@/components/customer/pdp/retailer-mini-card";
 import { ReviewsPanel } from "@/components/customer/pdp/reviews-panel";
+import { ShareButton } from "@/components/customer/pdp/share-button";
 import { ProductCarousel } from "@/components/customer/product-carousel";
 import { getProductBySlug, getRelatedProducts } from "@/lib/data/products";
 import { getRetailerById } from "@/lib/data/retailers";
@@ -48,12 +48,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : null;
 
-  const deliveryFrom = new Date();
-  deliveryFrom.setDate(deliveryFrom.getDate() + 5);
-  const deliveryTo = new Date();
-  deliveryTo.setDate(deliveryTo.getDate() + 8);
-  const deliveryWindow = `${deliveryFrom.toLocaleDateString("en-US", { month: "long", day: "numeric" })} – ${deliveryTo.toLocaleDateString("en-US", { day: "numeric" })}`;
-
   return (
     <div>
       <div className="px-5 pt-6 sm:px-10 lg:px-20">
@@ -74,7 +68,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold uppercase text-gold-400">Handloom Heritage</p>
-              {discount && <Badge variant="primary">{discount}% OFF</Badge>}
+              <div className="flex items-center gap-3">
+                {discount && <Badge variant="primary">{discount}% OFF</Badge>}
+                <ShareButton title={product.name} />
+              </div>
             </div>
             <h1 className="font-display text-[40px] leading-[1.1] text-primary-600">{product.name}</h1>
             <div className="flex items-center gap-3">
@@ -116,13 +113,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="flex items-center gap-3 rounded-md border border-success-500 bg-[#e2ece9]/[0.13] p-4">
-            <Truck className="size-[18px] text-success-500" />
-            <p className="text-sm text-success-500">
-              Guaranteed safe delivery by <span className="font-bold">{deliveryWindow}</span> with tracking.
-            </p>
           </div>
 
           <PurchasePanel product={product} />

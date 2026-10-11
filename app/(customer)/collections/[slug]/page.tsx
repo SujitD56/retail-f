@@ -59,12 +59,14 @@ export default async function CollectionPage({
         />
       </div>
       <CollectionHero collection={collection} retailerCount={retailerCount || 1} />
+      <div className="h-8" />
       <SareeListingClient
         products={collectionProducts}
         retailers={retailers}
         hideCategoryFilter
+        hideRetailerFilter={Boolean(scopedRetailer)}
         header={
-          <div className="flex items-baseline gap-3">
+          <div key="collection-header" className="flex items-baseline gap-3">
             <p className="text-base text-ink-700">
               Showing {collectionProducts.length} exquisite sarees{scopedRetailer ? ` from ${scopedRetailer.name}` : ""}
             </p>

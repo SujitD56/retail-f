@@ -41,7 +41,7 @@ export default function RetailerForgotPasswordPage() {
               <Label htmlFor="contact" required>
                 Registered Email or Mobile
               </Label>
-              <Input id="contact" icon={<Mail className="size-[18px]" />} value={contact} onChange={(e) => setContact(e.target.value)} placeholder="seller@ilkalthreads.com" />
+              <Input id="contact" icon={<Mail className="size-[18px]" />} value={contact} onChange={(e) => setContact(e.target.value)} placeholder="seller@kaushaya.com" />
             </div>
             <Button type="submit" size="lg" className="h-11 w-full">
               Send OTP

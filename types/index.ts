@@ -1,4 +1,4 @@
-// Domain types for Ilkal Threads. Shaped the way a real API would return
+// Domain types for Kaushaya. Shaped the way a real API would return
 // data, so `lib/data/*` mock repositories can be swapped for real fetch
 // calls later without touching any component.
 
@@ -141,8 +141,10 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   role: UserRole;
   avatarUrl?: string;
+  memberSince: string; // ISO date
 }
 
 // ---------- Events / gamified leaderboard module ----------

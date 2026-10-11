@@ -43,7 +43,7 @@ export default async function SearchResultsPage({
     <div>
       <div className="flex flex-col gap-4 px-5 pb-6 pt-8 sm:px-10 lg:px-20">
         <h1 className="font-display text-4xl text-primary-600">
-          {query ? `Search Results for "${query}"` : "Search Ilkal Threads"}
+          {query ? `Search Results for "${query}"` : "Search Kaushaya"}
         </h1>
         <p className="text-base text-ink-700">
           {matchedProducts.length + matchedRetailers.length + matchedCollections.length} matching results found across the weaver network
@@ -70,7 +70,7 @@ export default async function SearchResultsPage({
         products={matchedProducts}
         retailers={allRetailers}
         header={
-          <div>
+          <div key="search-header">
             <h2 className="font-display text-2xl text-ink-900">Sarees</h2>
             <p className="text-sm text-ink-700">{matchedProducts.length} results</p>
           </div>

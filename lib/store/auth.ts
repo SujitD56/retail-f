@@ -18,10 +18,11 @@ interface AuthState {
   /** Re-validates the session against the server (the httpOnly cookie is the real source of truth — this store just mirrors it for instant UI). Call once on app mount. */
   fetchMe: () => Promise<void>;
   loginCustomer: (email: string, password: string) => Promise<void>;
-  signup: (fullName: string, email: string, password: string) => Promise<void>;
+  signup: (fullName: string, email: string, password: string, phone?: string) => Promise<void>;
   loginRetailer: (email: string, password: string) => Promise<void>;
   loginAdmin: (email: string, password: string) => Promise<AdminLoginResult>;
   verifyAdminMfa: (mfaToken: string, code: string) => Promise<void>;
+  updateProfile: (fullName: string, phone?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -65,8 +66,8 @@ export const useAuthStore = create<AuthState>()(
         set({ user });
       },
 
-      signup: async (fullName, email, password) => {
-        const { user } = await api.post<{ user: User }>("/auth/signup", { fullName, email, password });
+      signup: async (fullName, email, password, phone) => {
+        const { user } = await api.post<{ user: User }>("/auth/signup", { fullName, email, password, phone });
         markSessionActive();
         set({ user });
       },
@@ -89,6 +90,11 @@ export const useAuthStore = create<AuthState>()(
       verifyAdminMfa: async (mfaToken, code) => {
         const { user } = await api.post<{ user: User }>("/auth/admin/mfa/verify", { mfaToken, code });
         markSessionActive();
+        set({ user });
+      },
+
+      updateProfile: async (fullName, phone) => {
+        const { user } = await api.patch<{ user: User }>("/auth/me", { fullName, phone });
         set({ user });
       },
 
