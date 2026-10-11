@@ -128,7 +128,7 @@ export default function RetailerRegisterPage() {
   };
 
   return (
-    <RetailerAuthShell tagBadge={step === 5 ? "STEP 5 OF 5" : "B2B SELLER NETWORK"} headline={step === 5 ? <>Bank &amp; Payout Details. <span className="text-gold-400">Secure &amp; seamless payments</span> directly to your business.</> : <>Manage your store. <span className="text-gold-400">Grow your business.</span> Reach millions of saree lovers.</>} pitch={step === 5 ? "Join the trusted marketplace. Our transparent billing cycle ensures your payments are deposited securely into your verified account without delay." : "Connect directly with authentic weavers, digitize your inventory, process wholesale orders, and scale your brand nationwide through India's premier Ilkal textile network."} showStats={step !== 5}>
+    <RetailerAuthShell tagBadge={step === 5 ? "STEP 5 OF 5" : "B2B SELLER NETWORK"} headline={step === 5 ? <>Bank &amp; Payout Details. <span className="text-gold-400">Secure &amp; seamless payments</span> directly to your business.</> : <>Manage your store. <span className="text-gold-400">Grow your business.</span> Reach millions of saree lovers.</>} pitch={step === 5 ? "Join the trusted marketplace. Our transparent billing cycle ensures your payments are deposited securely into your verified account without delay." : "Connect directly with authentic weavers, digitize your inventory, process wholesale orders, and scale your brand nationwide through India's premier Ilkal textile network."} showStats={false}>
       <div className="flex flex-col gap-6 rounded-lg bg-white p-10 shadow-card lg:bg-transparent lg:p-0 lg:shadow-none">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between text-[13px] text-ink-700">

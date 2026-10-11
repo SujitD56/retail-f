@@ -10,7 +10,6 @@ import { RetailerAuthShell } from "@/components/retailer/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { FormCheckbox } from "@/components/ui/form-checkbox";
-import { GoogleGlyph } from "@/components/ui/social-glyphs";
 import { retailerLoginSchema, type LoginValues } from "@/lib/validations/auth";
 import { useAuthStore } from "@/lib/store/auth";
 import { useToast } from "@/components/ui/toast";
@@ -62,6 +61,7 @@ function RetailerLoginForm() {
         </>
       }
       pitch="Connect directly with authentic weavers, digitize your inventory, process wholesale orders, and scale your brand nationwide through India's premier Ilkal textile network."
+      showStats={false}
     >
       <div className="flex flex-col gap-8 rounded-lg bg-white p-10 shadow-card lg:bg-transparent lg:p-0 lg:shadow-none">
         <div className="flex flex-col gap-3">
@@ -107,14 +107,9 @@ function RetailerLoginForm() {
             <Button type="submit" size="lg" disabled={isSubmitting} className="h-12 w-full">
               {isSubmitting ? "Signing in…" : "Sign In to Portal"}
             </Button>
-            <div className="flex items-center gap-4">
-              <span className="h-px flex-1 bg-cream-300" />
-              <span className="text-[13px] text-ink-500">or</span>
-              <span className="h-px flex-1 bg-cream-300" />
-            </div>
-            <Button type="button" variant="secondary" className="h-12 w-full">
-              <GoogleGlyph className="size-[18px]" /> Sign in with Google Workspace
-            </Button>
+            {/* Google sign-in is disabled until a real OAuth app is wired up
+                on the backend — this button had no handler and silently did
+                nothing. */}
           </div>
         </form>
 

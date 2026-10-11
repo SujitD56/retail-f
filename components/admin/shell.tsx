@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   ClipboardList,
@@ -11,6 +11,7 @@ import {
   Gauge,
   HelpCircle,
   LayoutGrid,
+  LogOut,
   Megaphone,
   Menu,
   Package,
@@ -23,7 +24,25 @@ import {
   UsersRound,
   X,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuthStore } from "@/lib/store/auth";
 import { cn } from "@/lib/utils";
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 const NAV = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutGrid, active: true },
@@ -43,7 +62,15 @@ const NAV = [
 
 export function AdminShell({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/admin/login");
+  };
 
   const sidebar = (
     <>
@@ -94,9 +121,11 @@ export function AdminShell({ title, subtitle, children }: { title: string; subti
           <HelpCircle className="size-4" /> Documentation &amp; Support
         </button>
         <div className="mt-4 flex items-center gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-sm font-semibold text-primary-600">AD</span>
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-sm font-semibold text-primary-600">
+            {initials(user?.name ?? "Admin")}
+          </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-ink-900">Aditi Deshpande</p>
+            <p className="truncate text-sm font-semibold text-ink-900">{user?.name ?? "Admin"}</p>
             <p className="text-xs text-ink-500">Super Administrator</p>
           </div>
         </div>
@@ -143,13 +172,26 @@ export function AdminShell({ title, subtitle, children }: { title: string; subti
               <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary-600" />
             </button>
             <span className="hidden h-6 w-px bg-cream-300 sm:block" />
-            <div className="flex items-center gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-cream-200 font-semibold text-ink-900">AD</span>
-              <div className="hidden sm:block">
-                <p className="text-sm font-semibold text-ink-900">Aditi D.</p>
-                <p className="text-xs text-ink-500">HQ Admin</p>
-              </div>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" className="flex items-center gap-3 rounded-sm text-left hover:opacity-80">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-cream-200 font-semibold text-ink-900">
+                    {initials(user?.name ?? "Admin")}
+                  </span>
+                  <div className="hidden sm:block">
+                    <p className="text-sm font-semibold text-ink-900">{user?.name ?? "Admin"}</p>
+                    <p className="text-xs text-ink-500">HQ Admin</p>
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {user?.email && <DropdownMenuLabel>{user.email}</DropdownMenuLabel>}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem destructive onSelect={handleLogout}>
+                  <LogOut className="size-4" /> Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
         <main className="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-10">{children}</main>
