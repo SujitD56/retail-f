@@ -23,6 +23,7 @@ const STATUS_AFTER_ACTION: Record<ModerateAction, AdminRetailerRow["status"]> = 
 
 interface AdminRetailerRow {
   id: string;
+  slug: string;
   name: string;
   weaverId: string;
   status: "Verified" | "Pending" | "Rejected" | "Suspended";
@@ -85,12 +86,12 @@ function buildColumns(moderate: (id: string, action: ModerateAction) => void): C
       header: "Actions",
       enableSorting: false,
       cell: ({ row }) => {
-        const { id, status } = row.original;
+        const { id, slug, status } = row.original;
         return (
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="View" className="text-ink-500 hover:text-primary-600">
+            <a href={`/retailers/${slug}`} target="_blank" rel="noopener noreferrer" aria-label="View retailer profile" className="text-ink-500 hover:text-primary-600">
               <Eye className="size-4" />
-            </button>
+            </a>
             {status === "Pending" && (
               <>
                 <Button size="sm" onClick={() => moderate(id, "approve")}>
@@ -147,6 +148,7 @@ export default function AdminRetailersPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const columns = useMemo(() => buildColumns(moderate), []);
 
   const tabs = [

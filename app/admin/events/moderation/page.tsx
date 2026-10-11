@@ -95,31 +95,31 @@ export default function AdminModerationPage() {
               </div>
 
               {list.map((c) => (
-                <div key={c.id} className="flex gap-5 rounded-lg border border-cream-300 bg-white p-5">
-                  <Checkbox checked={selected.includes(c.id)} onCheckedChange={() => toggleSelect(c.id)} className="mt-1 shrink-0" />
-                  <div className="relative h-40 w-[90px] shrink-0 overflow-hidden rounded-md">
-                    <Image src={c.imageUrl} alt="" fill sizes="90px" className="object-cover" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-display text-lg leading-snug text-ink-900">{c.title}</p>
-                    <div className="mt-1.5 flex items-center gap-2 text-sm text-ink-700">
-                      {c.retailer}
-                      {c.verified && (
-                        <span className="rounded-pill bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-500">Verified</span>
-                      )}
+                <div key={c.id} className="flex flex-col gap-4 rounded-lg border border-cream-300 bg-white p-5 sm:flex-row sm:gap-5">
+                  <div className="flex gap-4 sm:contents">
+                    <Checkbox checked={selected.includes(c.id)} onCheckedChange={() => toggleSelect(c.id)} className="mt-1 shrink-0" />
+                    <div className="relative h-28 w-20 shrink-0 overflow-hidden rounded-md sm:h-40 sm:w-[90px]">
+                      <Image src={c.imageUrl} alt="" fill sizes="90px" className="object-cover" />
                     </div>
-                    <p className="mt-3 text-xs text-ink-500">Submitted on: {c.submittedOn}</p>
-                    <p className="mt-1 text-xs text-ink-500">Tagged Saree: {c.taggedSaree}</p>
-                  </div>
-                  <div className="flex w-[180px] shrink-0 flex-col gap-2">
-                    <div className="flex gap-2">
-                      <Button size="sm" className="flex-1" onClick={() => moderate(c.id, "approve")}>
-                        Approve
-                      </Button>
-                      <Button size="sm" variant="danger" className="flex-1" onClick={() => moderate(c.id, "reject")}>
-                        Reject
-                      </Button>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display text-lg leading-snug text-ink-900">{c.title}</p>
+                      <div className="mt-1.5 flex items-center gap-2 text-sm text-ink-700">
+                        {c.retailer}
+                        {c.verified && (
+                          <span className="rounded-pill bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-500">Verified</span>
+                        )}
+                      </div>
+                      <p className="mt-3 text-xs text-ink-500">Submitted on: {c.submittedOn}</p>
+                      <p className="mt-1 text-xs text-ink-500">Tagged Saree: {c.taggedSaree}</p>
                     </div>
+                  </div>
+                  <div className="flex gap-2 sm:w-[180px] sm:shrink-0 sm:flex-col">
+                    <Button size="sm" className="flex-1" onClick={() => moderate(c.id, "approve")}>
+                      Approve
+                    </Button>
+                    <Button size="sm" variant="danger" className="flex-1" onClick={() => moderate(c.id, "reject")}>
+                      Reject
+                    </Button>
                   </div>
                 </div>
               ))}

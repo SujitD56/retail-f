@@ -6,8 +6,8 @@ import { FileUploadBox } from "@/components/retailer/file-upload-box";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
-import { cn } from "@/lib/utils";
 
 const TOGGLES = [
   { key: "smsOrders", label: "SMS notifications on new weaver orders received", defaultOn: true },
@@ -15,14 +15,6 @@ const TOGGLES = [
   { key: "whatsappStock", label: "Alert me on WhatsApp if a loom masterwork falls to low stock", defaultOn: false },
   { key: "reviewAlert", label: "Notify when a customer leaves a handloom review", defaultOn: true },
 ];
-
-function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
-  return (
-    <button type="button" onClick={onToggle} className={cn("relative h-6 w-12 rounded-pill transition-colors", on ? "bg-primary-600" : "bg-cream-300")}>
-      <span className={cn("absolute top-1 size-4 rounded-full bg-white transition-transform", on ? "translate-x-7" : "translate-x-1")} />
-    </button>
-  );
-}
 
 export default function RetailerSettingsPage() {
   const [toggles, setToggles] = useState(Object.fromEntries(TOGGLES.map((t) => [t.key, t.defaultOn])));
@@ -130,7 +122,7 @@ export default function RetailerSettingsPage() {
             {TOGGLES.map((t) => (
               <div key={t.key} className="flex items-center justify-between">
                 <span className="text-sm text-ink-900">{t.label}</span>
-                <Toggle on={toggles[t.key]!} onToggle={() => setToggles((prev) => ({ ...prev, [t.key]: !prev[t.key] }))} />
+                <Switch checked={toggles[t.key]!} onCheckedChange={() => setToggles((prev) => ({ ...prev, [t.key]: !prev[t.key] }))} label={t.label} />
               </div>
             ))}
           </div>

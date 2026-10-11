@@ -6,12 +6,31 @@ import { FileUploadBox, type UploadedFile } from "@/components/retailer/file-upl
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
+import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
 const TABS = ["Basic Info", "Images", "Specifications", "Pricing"] as const;
 const CATEGORIES = ["Traditional Ilkal", "Contemporary Ilkal", "Wedding Saree", "Festive Saree", "Cotton Ilkal", "Silk Cotton"];
 const COLLECTIONS = ["Handpicked Ilkal", "Festive Edit", "Heritage Collection", "Contemporary Ilkal"];
+
+// Maps a backend validation field name to the tab that field lives on, so a
+// failed submit can jump straight to the first tab with an error.
+const TAB_FOR_FIELD: Record<string, (typeof TABS)[number]> = {
+  name: "Basic Info",
+  description: "Basic Info",
+  weaveType: "Basic Info",
+  collectionLabel: "Basic Info",
+  color: "Specifications",
+  borderType: "Specifications",
+  material: "Specifications",
+  lengthWidth: "Specifications",
+  price: "Pricing",
+  compareAtPrice: "Pricing",
+  stockCount: "Pricing",
+  images: "Images",
+};
 
 export interface ProductFormValues {
   title: string;
@@ -84,6 +103,7 @@ export function ProductForm({
   const [stockQty, setStockQty] = useState(initial?.stockQty ?? BLANK_VALUES.stockQty);
   const [live, setLive] = useState(initial?.live ?? BLANK_VALUES.live);
   const [submitting, setSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
   const publish = async (asDraft: boolean) => {
     if (images.length === 0) {
@@ -92,13 +112,22 @@ export function ProductForm({
       return;
     }
     setSubmitting(true);
+    setFieldErrors({});
     try {
       await onSubmit(
         { title, description, category, collection, tags, material, lengthWidth, borderType, color, images, price, compareAtPrice, stockQty, live },
         asDraft,
       );
-    } catch {
-      toast({ title: "Couldn't save this product — try again", variant: "error" });
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "VALIDATION_ERROR") {
+        const errors = (err.details as { fieldErrors?: Record<string, string[]> } | undefined)?.fieldErrors ?? {};
+        setFieldErrors(errors);
+        const firstField = Object.keys(errors)[0];
+        if (firstField && TAB_FOR_FIELD[firstField]) setTab(TAB_FOR_FIELD[firstField]);
+        toast({ title: "Please fix the highlighted fields", variant: "error" });
+      } else {
+        toast({ title: "Couldn't save this product — try again", variant: "error" });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -142,11 +171,11 @@ export function ProductForm({
               <div className="mt-5 flex flex-col gap-5">
                 <div>
                   <Label htmlFor="productTitle" required>Product Title</Label>
-                  <Input id="productTitle" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Input id="productTitle" value={title} onChange={(e) => setTitle(e.target.value)} error={fieldErrors.name?.[0]} />
                 </div>
                 <div>
                   <Label htmlFor="productDescription" required>Description</Label>
-                  <Textarea id="productDescription" className="min-h-[140px]" value={description} onChange={(e) => setDescription(e.target.value)} />
+                  <Textarea id="productDescription" className="min-h-[140px]" value={description} onChange={(e) => setDescription(e.target.value)} error={fieldErrors.description?.[0]} />
                 </div>
               </div>
 
@@ -221,7 +250,7 @@ export function ProductForm({
               <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
                 <div>
                   <Label htmlFor="sellingPrice" required>Selling Price (₹)</Label>
-                  <Input id="sellingPrice" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+                  <Input id="sellingPrice" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} error={fieldErrors.price?.[0]} />
                 </div>
                 <div>
                   <Label htmlFor="compareAtPrice">Compare-at Price (₹)</Label>
@@ -241,13 +270,7 @@ export function ProductForm({
             <p className="font-display text-lg text-ink-900">Publishing Settings</p>
             <div className="mt-4 flex items-center justify-between">
               <span className="text-sm text-ink-900">Live Product Status</span>
-              <button
-                type="button"
-                onClick={() => setLive((v) => !v)}
-                className={cn("relative h-6 w-12 rounded-pill transition-colors", live ? "bg-primary-600" : "bg-cream-300")}
-              >
-                <span className={cn("absolute top-1 size-4 rounded-full bg-white transition-transform", live ? "translate-x-7" : "translate-x-1")} />
-              </button>
+              <Switch checked={live} onCheckedChange={() => setLive((v) => !v)} label="Live product status" />
             </div>
             <p className="mt-3 text-xs leading-relaxed text-ink-500">
               Enabling live status publishes this handloom piece to the global Ilkal marketplace immediately.

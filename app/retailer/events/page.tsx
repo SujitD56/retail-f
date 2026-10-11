@@ -93,8 +93,8 @@ export default function RetailerEventsDashboardPage() {
 
           <div>
             <p className="mb-3 font-display text-2xl text-ink-900">Past Performance</p>
-            <div className="overflow-hidden rounded-lg border border-cream-300 bg-white">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto rounded-lg border border-cream-300 bg-white">
+              <table className="w-full min-w-[520px] text-sm">
                 <thead>
                   <tr className="border-b border-cream-300 bg-cream-100 text-left text-xs uppercase text-ink-500">
                     <th className="px-4 py-3 font-medium">Event Name</th>

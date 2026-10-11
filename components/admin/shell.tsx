@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutGrid, active: true },
   { label: "Retailers", href: "/admin/retailers", icon: Users, active: true },
-  { label: "Customers", href: "#", icon: UsersRound, active: false },
+  { label: "Customers", href: "/admin/customers", icon: UsersRound, active: true },
   { label: "Products", href: "/admin/products", icon: Package, active: true },
   { label: "Orders", href: "/admin/orders", icon: ShoppingBag, active: true },
   { label: "Events", href: "/admin/events", icon: ClipboardList, active: true },

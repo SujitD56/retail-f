@@ -8,11 +8,22 @@ import { AdminShell } from "@/components/admin/shell";
 import { DataTable } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/ui/status-pill";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/toast";
 import { useApiQuery } from "@/lib/hooks/use-api-query";
+import { api } from "@/lib/api/client";
 import { cn, formatINR } from "@/lib/utils";
+
+type AdminLifecycleStatus = "DRAFT" | "ACTIVE" | "UNDER_REVIEW" | "ARCHIVED";
 
 interface AdminProductRow {
   id: string;
+  slug: string;
   name: string;
   sku: string;
   retailer: string;
@@ -25,63 +36,112 @@ interface AdminProductRow {
   orders: number;
 }
 
-const columns: ColumnDef<AdminProductRow>[] = [
-  {
-    accessorKey: "imageUrl",
-    header: "Image",
-    enableSorting: false,
-    cell: ({ row }) => (
-      <div className="relative size-10 overflow-hidden rounded-sm">
-        <Image src={row.original.imageUrl} alt="" fill sizes="40px" className="object-cover" />
-      </div>
-    ),
-  },
-  {
-    accessorKey: "name",
-    header: "Product Name & Sku",
-    cell: ({ row }) => (
-      <div>
-        <p className="font-medium text-ink-900">{row.original.name}</p>
-        <p className="text-xs text-ink-500">SKU: {row.original.sku}</p>
-      </div>
-    ),
-  },
-  { accessorKey: "retailer", header: "Retailer Store" },
-  { accessorKey: "category", header: "Category" },
-  { accessorKey: "price", header: "Price", cell: ({ row }) => formatINR(row.original.price) },
-  { accessorKey: "stock", header: "Stock", cell: ({ row }) => `${row.original.stock} unit${row.original.stock === 1 ? "" : "s"}` },
-  { accessorKey: "status", header: "Status Tag", cell: ({ row }) => <StatusPill status={row.original.status} /> },
-  {
-    accessorKey: "rating",
-    header: "Rating",
-    cell: ({ row }) =>
-      row.original.rating > 0 ? (
-        <span className="flex items-center gap-1 font-medium text-ink-900">
-          {row.original.rating.toFixed(1)} <Star className="size-3.5 fill-gold-400 text-gold-400" />
-        </span>
-      ) : (
-        <span className="text-ink-500">—</span>
+function buildColumns(moderate: (id: string, status: AdminLifecycleStatus) => void): ColumnDef<AdminProductRow>[] {
+  return [
+    {
+      accessorKey: "imageUrl",
+      header: "Image",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className="relative size-10 overflow-hidden rounded-sm">
+          <Image src={row.original.imageUrl} alt="" fill sizes="40px" className="object-cover" />
+        </div>
       ),
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    enableSorting: false,
-    cell: () => (
-      <div className="flex items-center gap-3 text-ink-500">
-        <button type="button" aria-label="View"><Eye className="size-4 hover:text-primary-600" /></button>
-        <button type="button" aria-label="More"><MoreVertical className="size-4 hover:text-primary-600" /></button>
-      </div>
-    ),
-  },
-];
+    },
+    {
+      accessorKey: "name",
+      header: "Product Name & Sku",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-medium text-ink-900">{row.original.name}</p>
+          <p className="text-xs text-ink-500">SKU: {row.original.sku}</p>
+        </div>
+      ),
+    },
+    { accessorKey: "retailer", header: "Retailer Store" },
+    { accessorKey: "category", header: "Category" },
+    { accessorKey: "price", header: "Price", cell: ({ row }) => formatINR(row.original.price) },
+    { accessorKey: "stock", header: "Stock", cell: ({ row }) => `${row.original.stock} unit${row.original.stock === 1 ? "" : "s"}` },
+    { accessorKey: "status", header: "Status Tag", cell: ({ row }) => <StatusPill status={row.original.status} /> },
+    {
+      accessorKey: "rating",
+      header: "Rating",
+      cell: ({ row }) =>
+        row.original.rating > 0 ? (
+          <span className="flex items-center gap-1 font-medium text-ink-900">
+            {row.original.rating.toFixed(1)} <Star className="size-3.5 fill-gold-400 text-gold-400" />
+          </span>
+        ) : (
+          <span className="text-ink-500">—</span>
+        ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const { id, slug, status } = row.original;
+        return (
+          <div className="flex items-center gap-3 text-ink-500">
+            <a href={`/product/${slug}`} target="_blank" rel="noopener noreferrer" aria-label="View on storefront" className="hover:text-primary-600">
+              <Eye className="size-4" />
+            </a>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" aria-label="More actions">
+                  <MoreVertical className="size-4 hover:text-primary-600" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {status === "Draft" && (
+                  <>
+                    <DropdownMenuItem onSelect={() => moderate(id, "ACTIVE")}>Activate</DropdownMenuItem>
+                    <DropdownMenuItem destructive onSelect={() => moderate(id, "ARCHIVED")}>Archive</DropdownMenuItem>
+                  </>
+                )}
+                {status === "Under Review" && (
+                  <>
+                    <DropdownMenuItem onSelect={() => moderate(id, "ACTIVE")}>Approve &amp; Activate</DropdownMenuItem>
+                    <DropdownMenuItem destructive onSelect={() => moderate(id, "ARCHIVED")}>Reject &amp; Archive</DropdownMenuItem>
+                  </>
+                )}
+                {(status === "Active" || status === "Low Stock" || status === "Out of Stock") && (
+                  <>
+                    <DropdownMenuItem onSelect={() => moderate(id, "UNDER_REVIEW")}>Flag for Review</DropdownMenuItem>
+                    <DropdownMenuItem destructive onSelect={() => moderate(id, "ARCHIVED")}>Archive Listing</DropdownMenuItem>
+                  </>
+                )}
+                {status === "Archived" && <DropdownMenuItem onSelect={() => moderate(id, "DRAFT")}>Restore to Draft</DropdownMenuItem>}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
+}
 
 export default function AdminProductsPage() {
-  const { data, loading } = useApiQuery<{ items: AdminProductRow[]; total: number }>("/products/admin?pageSize=200");
+  const { toast } = useToast();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { data, loading } = useApiQuery<{ items: AdminProductRow[]; total: number }>(`/products/admin?pageSize=200&_r=${refreshKey}`);
   const rows = useMemo(() => data?.items ?? [], [data]);
 
   const [tab, setTab] = useState<"all" | "active" | "audit" | "reported">("all");
   const [query, setQuery] = useState("");
+
+  const moderate = async (id: string, status: AdminLifecycleStatus) => {
+    try {
+      await api.patch(`/products/admin/${id}/status`, { status });
+      toast({ title: "Product listing updated", variant: "success" });
+      setRefreshKey((k) => k + 1);
+    } catch {
+      toast({ title: "Couldn't update this listing — try again", variant: "error" });
+    }
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const columns = useMemo(() => buildColumns(moderate), []);
 
   const tabs = useMemo(
     () => [

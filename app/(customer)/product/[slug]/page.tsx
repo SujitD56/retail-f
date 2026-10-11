@@ -108,8 +108,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="overflow-hidden rounded-md border border-cream-300 text-sm">
               {SPEC_ROWS(product).map(([label, value], i) => (
                 <div key={label} className={`flex gap-4 p-3.5 ${i % 2 === 1 ? "bg-cream-100" : "bg-white"} border-b border-cream-300 last:border-0`}>
-                  <p className="w-[180px] shrink-0 font-semibold text-ink-900">{label}</p>
-                  <p className="text-ink-700">{value}</p>
+                  <p className="w-[120px] shrink-0 font-semibold text-ink-900 sm:w-[180px]">{label}</p>
+                  <p className="min-w-0 flex-1 text-ink-700">{value}</p>
                 </div>
               ))}
             </div>

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Calendar, CheckCircle2, ChevronDown, Eye, MoreVertical, Package, RotateCcw, Search, Truck } from "lucide-react";
 import { AdminShell } from "@/components/admin/shell";
@@ -14,6 +16,7 @@ interface AdminOrderRow {
   id: string;
   orderId: string;
   customer: string;
+  customerEmail: string;
   retailer: string;
   itemCount: number;
   total: number;
@@ -39,9 +42,11 @@ const columns: ColumnDef<AdminOrderRow>[] = [
     id: "actions",
     header: "Actions",
     enableSorting: false,
-    cell: () => (
+    cell: ({ row }) => (
       <div className="flex items-center gap-3 text-ink-500">
-        <button type="button" aria-label="View"><Eye className="size-4 hover:text-primary-600" /></button>
+        <Link href={`/admin/orders/${row.original.id}`} aria-label="View order details" className="hover:text-primary-600">
+          <Eye className="size-4" />
+        </Link>
         <button type="button" aria-label="More"><MoreVertical className="size-4 hover:text-primary-600" /></button>
       </div>
     ),
@@ -53,14 +58,26 @@ function statusCount(stats: AdminStats | null, status: string) {
 }
 
 export default function AdminOrdersPage() {
+  return (
+    <Suspense fallback={<Skeleton className="m-10 h-96" />}>
+      <AdminOrdersPageContent />
+    </Suspense>
+  );
+}
+
+function AdminOrdersPageContent() {
+  const searchParams = useSearchParams();
   const { data, loading } = useApiQuery<{ items: AdminOrderRow[] }>("/orders/admin?pageSize=200");
   const { data: stats } = useApiQuery<AdminStats>("/admin/stats");
   const rows = useMemo(() => data?.items ?? [], [data]);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
 
   const filtered = useMemo(() => {
     if (!query) return rows;
-    return rows.filter((o) => o.orderId.toLowerCase().includes(query.toLowerCase()));
+    const q = query.toLowerCase();
+    return rows.filter(
+      (o) => o.orderId.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q) || o.customerEmail.toLowerCase().includes(q),
+    );
   }, [rows, query]);
 
   const total = stats?.totalOrders ?? 0;
@@ -118,7 +135,7 @@ export default function AdminOrdersPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search globally by order #..."
+            placeholder="Search by order # or customer..."
             className="h-10 w-72 rounded-sm border border-cream-300 bg-white pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-500 focus:outline-none"
           />
         </div>

@@ -29,11 +29,11 @@ export default function RetailerDashboardPage() {
       <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
         {stats ? (
           <>
-            <StatCard label="Total Sales" value={formatINR(stats.totalSales)} icon={BarChart2} />
-            <StatCard label="Orders" value={String(stats.orders)} icon={ShoppingBag} />
-            <StatCard label="Active Products" value={String(stats.activeProducts)} icon={ShoppingBag} />
-            <StatCard label="Customers" value={stats.customers.toLocaleString("en-IN")} icon={Users} />
-            <StatCard label="Avg Rating" value={stats.avgRating > 0 ? `${stats.avgRating} ★` : "—"} icon={StarIcon} />
+            <StatCard label="Total Sales" value={formatINR(stats.totalSales)} icon={BarChart2} href="/retailer/analytics" />
+            <StatCard label="Orders" value={String(stats.orders)} icon={ShoppingBag} href="/retailer/orders" />
+            <StatCard label="Active Products" value={String(stats.activeProducts)} icon={ShoppingBag} href="/retailer/products" />
+            <StatCard label="Customers" value={stats.customers.toLocaleString("en-IN")} icon={Users} href="/retailer/analytics" />
+            <StatCard label="Avg Rating" value={stats.avgRating > 0 ? `${stats.avgRating} ★` : "—"} icon={StarIcon} href="/retailer/analytics" />
           </>
         ) : (
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
@@ -117,9 +117,9 @@ export default function RetailerDashboardPage() {
             ) : (
               lowStock.items.map((item) => (
                 <div key={item.product} className="rounded-md border border-cream-300 p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-ink-500">{item.category}</span>
-                    <span className={`rounded-sm px-2 py-0.5 text-[11px] font-semibold ${item.unitsLeft === 0 ? "bg-danger-50 text-danger-500" : "bg-warning-50 text-warning-500"}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0 truncate text-xs font-medium text-ink-500">{item.category}</span>
+                    <span className={`shrink-0 whitespace-nowrap rounded-sm px-2 py-0.5 text-[11px] font-semibold ${item.unitsLeft === 0 ? "bg-danger-50 text-danger-500" : "bg-warning-50 text-warning-500"}`}>
                       {item.unitsLeft} left
                     </span>
                   </div>

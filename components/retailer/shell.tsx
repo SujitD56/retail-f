@@ -11,14 +11,55 @@ import {
   Folder,
   HelpCircle,
   LayoutGrid,
+  LogOut,
   Menu,
   Package,
   Settings,
   ShoppingBag,
+  UserCircle,
   X,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useApiQuery } from "@/lib/hooks/use-api-query";
 import { useAuthStore } from "@/lib/store/auth";
 import { cn } from "@/lib/utils";
+
+interface LowStockItem { category: string; product: string; unitsLeft: number }
+interface RetailerOrderRow { id: string; customer: string; shipStatus: string }
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+/** Real alerts derived from the retailer's own data — no hand-authored notifications. */
+function useRetailerNotifications() {
+  const { data: lowStock } = useApiQuery<{ items: LowStockItem[] }>("/retailers/stats/low-stock");
+  const { data: orders } = useApiQuery<{ items: RetailerOrderRow[] }>("/orders/retailer/mine");
+
+  const stockAlerts = (lowStock?.items ?? []).map((item) => ({
+    id: `stock-${item.product}`,
+    text: item.unitsLeft === 0 ? `${item.product} is out of stock` : `${item.product} has only ${item.unitsLeft} left`,
+    href: "/retailer/products",
+  }));
+  const orderAlerts = (orders?.items ?? []).slice(0, 5).map((o) => ({
+    id: `order-${o.id}`,
+    text: `Order #${o.id} — ${o.customer} (${o.shipStatus})`,
+    href: "/retailer/orders",
+  }));
+  return [...stockAlerts, ...orderAlerts].slice(0, 8);
+}
 
 const NAV = [
   { label: "Dashboard", href: "/retailer/dashboard", icon: LayoutGrid },
@@ -33,8 +74,15 @@ const NAV = [
 export function RetailerShell({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const notifications = useRetailerNotifications();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/retailer/login");
+  };
 
   const sidebar = (
     <>
@@ -131,18 +179,52 @@ export function RetailerShell({ title, subtitle, children }: { title: string; su
             </div>
           </div>
           <div className="flex items-center gap-4 sm:gap-6">
-            <button type="button" aria-label="Notifications" className="relative text-ink-700">
-              <Bell className="size-5" />
-              <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary-600" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" aria-label="Notifications" className="relative text-ink-700 hover:text-primary-600">
+                  <Bell className="size-5" />
+                  {notifications.length > 0 && <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary-600" />}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notifications.length === 0 ? (
+                  <p className="px-2.5 py-4 text-center text-sm text-ink-500">You&rsquo;re all caught up.</p>
+                ) : (
+                  notifications.map((n) => (
+                    <DropdownMenuItem key={n.id} onSelect={() => router.push(n.href)} className="whitespace-normal">
+                      {n.text}
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <span className="hidden h-6 w-px bg-cream-300 sm:block" />
-            <div className="flex items-center gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-cream-200 font-semibold text-ink-900">DS</span>
-              <div className="hidden sm:block">
-                <p className="text-sm font-semibold text-ink-900">Devappa Swamy</p>
-                <p className="text-xs text-ink-500">Store Manager</p>
-              </div>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" className="flex items-center gap-3 rounded-sm text-left hover:opacity-80">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-cream-200 font-semibold text-ink-900">
+                    {initials(user?.name ?? "Retailer")}
+                  </span>
+                  <div className="hidden sm:block">
+                    <p className="text-sm font-semibold text-ink-900">{user?.name ?? "Retailer"}</p>
+                    <p className="text-xs text-ink-500">Store Manager</p>
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {user?.email && <DropdownMenuLabel>{user.email}</DropdownMenuLabel>}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => router.push("/retailer/settings")}>
+                  <UserCircle className="size-4" /> View / Edit Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem destructive onSelect={handleLogout}>
+                  <LogOut className="size-4" /> Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
         <main className="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-10">{children}</main>

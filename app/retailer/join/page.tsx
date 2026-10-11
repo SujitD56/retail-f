@@ -19,7 +19,7 @@ export default function RetailerJoinLandingPage() {
 
   return (
     <div className="bg-cream-100">
-      <header className="flex h-[88px] items-center justify-between border-b border-cream-300 bg-white px-20">
+      <header className="flex h-[88px] items-center justify-between border-b border-cream-300 bg-white px-5 sm:px-10 lg:px-20">
         <div>
           <p className="font-display text-2xl text-primary-600">Kaushaya</p>
           <p className="text-[10px] uppercase tracking-wide text-gold-400">Weaver Marketplace</p>
@@ -36,11 +36,11 @@ export default function RetailerJoinLandingPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-16 px-20 py-20 lg:flex-row">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-16 px-5 py-12 sm:px-10 lg:flex-row lg:px-20 lg:py-20">
         <div className="flex flex-1 flex-col gap-10">
           <div className="flex flex-col gap-4">
             <p className="text-sm font-semibold uppercase text-gold-400">Artisan &amp; Master Weaver Registration</p>
-            <h1 className="font-display text-5xl leading-[1.15] text-primary-600">Digitize Your Legacy. Sell Your Authentic Ilkal Sarees.</h1>
+            <h1 className="font-display text-3xl leading-[1.15] text-primary-600 sm:text-4xl lg:text-5xl">Digitize Your Legacy. Sell Your Authentic Ilkal Sarees.</h1>
             <p className="text-base leading-relaxed text-ink-700">
               Join India&apos;s trusted online portal dedicated strictly to traditional Ilkal handlooms. Showcase your
               craftsmanship and directly supply to handloom connoisseurs across the globe.
@@ -129,7 +129,7 @@ export default function RetailerJoinLandingPage() {
         </div>
       </div>
 
-      <footer className="border-t border-cream-300 bg-white px-20 py-16">
+      <footer className="border-t border-cream-300 bg-white px-5 py-12 sm:px-10 lg:px-20 lg:py-16">
         <div className="flex flex-col justify-between gap-10 lg:flex-row">
           <div className="max-w-sm">
             <p className="font-display text-2xl text-primary-600">Kaushaya</p>
@@ -138,7 +138,7 @@ export default function RetailerJoinLandingPage() {
               cooperatives through digital commerce.
             </p>
           </div>
-          <div className="flex gap-16">
+          <div className="flex gap-10 sm:gap-16">
             <div className="flex flex-col gap-3">
               <p className="text-sm font-semibold text-ink-900">Portal</p>
               <Link href="/retailer/login" className="text-sm text-ink-700">Retailer Login</Link>
@@ -153,7 +153,7 @@ export default function RetailerJoinLandingPage() {
             </div>
           </div>
         </div>
-        <div className="mt-10 flex items-center justify-between border-t border-cream-300 pt-6 text-xs text-ink-500">
+        <div className="mt-10 flex flex-col gap-4 border-t border-cream-300 pt-6 text-xs text-ink-500 sm:flex-row sm:items-center sm:justify-between">
           <span>© 2026 Kaushaya. All rights reserved. Handloom Mark Certified.</span>
           <div className="flex gap-6">
             <span>Instagram</span>

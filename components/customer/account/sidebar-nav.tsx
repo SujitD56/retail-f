@@ -27,7 +27,7 @@ export function AccountSidebarNav({
   onLogout: () => void;
 }) {
   return (
-    <aside className="flex w-[260px] shrink-0 flex-col gap-1 rounded-lg border border-cream-300 bg-white p-5">
+    <aside className="flex w-full shrink-0 flex-col gap-1 rounded-lg border border-cream-300 bg-white p-5 lg:w-[260px]">
       {ACCOUNT_TABS.map((tab) => {
         const Icon = ICONS[tab];
         return (

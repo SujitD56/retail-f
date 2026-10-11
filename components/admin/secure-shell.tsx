@@ -10,16 +10,16 @@ import { ShieldAlert } from "lucide-react";
 export function AdminSecureShell({ badge, children }: { badge: string; children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-secure-950 text-white">
-      <div className="flex h-11 items-center justify-between border-b border-secure-700 px-10 text-xs text-secure-500">
+      <div className="flex h-11 items-center justify-between gap-3 overflow-x-auto whitespace-nowrap border-b border-secure-700 px-4 text-xs text-secure-500 sm:px-10">
         <span className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-secure-accent" />
+          <span className="size-2 shrink-0 rounded-full bg-secure-accent" />
           Kaushaya Secure Server
         </span>
         <span>Node: secure_gateway_v3.2</span>
       </div>
 
       <div className="flex flex-1 items-center justify-center px-4 py-16">
-        <div className="w-full max-w-[440px] rounded-lg border border-secure-700 bg-secure-900 p-9">
+        <div className="w-full max-w-[440px] rounded-lg border border-secure-700 bg-secure-900 p-6 sm:p-9">
           <div className="mb-8 flex flex-col items-center gap-3">
             <div className="rounded-md bg-cream-100 p-3">
               <Image src="/images/brand/kaushaya-logo-sm.png" alt="Kaushaya" width={200} height={112} className="h-16 w-auto object-contain" />
@@ -30,7 +30,7 @@ export function AdminSecureShell({ badge, children }: { badge: string; children:
         </div>
       </div>
 
-      <div className="flex h-10 items-center justify-between border-t border-secure-700 px-10 text-[11px] text-secure-500">
+      <div className="flex flex-col items-center gap-1 border-t border-secure-700 px-4 py-2 text-center text-[11px] text-secure-500 sm:h-10 sm:flex-row sm:justify-between sm:px-10 sm:py-0">
         <span>SYSTEM STATUS: OK • ENCRYPTION: TLS_1.3_AES_256_GCM</span>
         <span>© 2026 Kaushaya IT Security</span>
       </div>
